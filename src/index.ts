@@ -60,8 +60,18 @@ interface Geom {
 
 }
 
-function toGeom(json: string) {
-    return new GeomCls(json) as Geom
+type geomType = 'Point' | 'LineString' | 'Polygon'
+
+function toGeom(jsonOrCoods: string | number[][] | any, type = 'Point' as geomType) {
+    if (Array.isArray(jsonOrCoods)) {
+        if (!Array.isArray(jsonOrCoods[0])) jsonOrCoods = [jsonOrCoods]
+        return GeomCls.create(type, jsonOrCoods)
+    } else {
+        if (typeof jsonOrCoods !== 'string') {
+            jsonOrCoods = JSON.stringify(jsonOrCoods)
+        }
+        return new GeomCls(jsonOrCoods) as Geom
+    }
 }
 
 function load() {
