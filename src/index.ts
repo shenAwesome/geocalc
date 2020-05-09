@@ -65,7 +65,7 @@ type geomType = 'Point' | 'LineString' | 'Polygon'
 function toGeom(jsonOrCoods: string | number[][] | any, type = 'Point' as geomType) {
     if (Array.isArray(jsonOrCoods)) {
         if (!Array.isArray(jsonOrCoods[0])) jsonOrCoods = [jsonOrCoods]
-        return GeomCls.create(type, jsonOrCoods)
+        return GeomCls.create(type, jsonOrCoods) as Geom
     } else {
         if (typeof jsonOrCoods !== 'string') {
             jsonOrCoods = JSON.stringify(jsonOrCoods)
