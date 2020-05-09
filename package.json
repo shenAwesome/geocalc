@@ -1,0 +1,10 @@
+{
+  "name": "@aslab/geocalc",
+  "version": "1.0.3",
+  "repository": "git@github.com:shenAwesome/geocalc.git",
+  "author": "Shen Z <shenAwesome@gmail.com>",
+  "license": "MIT",
+  "description": "geometry calculations",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts"
+}
