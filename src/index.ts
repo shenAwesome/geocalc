@@ -61,7 +61,6 @@ interface Geom {
     offsetLine(offsetDistance: number): Geom
 
     extendLine(change: number): Geom
-
 }
 
 type geomType = 'Point' | 'LineString' | 'Polygon'
@@ -88,6 +87,10 @@ function toGeom(jsonOrCoods: string | number[][] | any, type = null as geomType)
     }
 }
 
+function makePolygon(lines: Geom[], mitreLimit: number) {
+    return GeomCls.makePolygon(lines, mitreLimit) as Geom
+}
+
 function load() {
     return new Promise<void>(resolve => {
         function check() {
@@ -101,4 +104,4 @@ function load() {
     })
 }
 
-export { load, toGeom }
+export { load, toGeom, makePolygon }
