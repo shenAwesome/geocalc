@@ -58,13 +58,27 @@ interface Geom {
 
     splitLine(points: Geom[]): Geom[]
 
+    offsetLine(offsetDistance: number): Geom
+
+    extendLine(change: number): Geom
+
 }
 
 type geomType = 'Point' | 'LineString' | 'Polygon'
 
-function toGeom(jsonOrCoods: string | number[][] | any, type = 'Point' as geomType) {
+function toGeom(jsonOrCoods: string | number[][] | any, type = null as geomType) {
     if (Array.isArray(jsonOrCoods)) {
         if (!Array.isArray(jsonOrCoods[0])) jsonOrCoods = [jsonOrCoods]
+        if (type == null) {
+            type = jsonOrCoods.length == 1 ? 'Point' : 'LineString'
+            if (jsonOrCoods.length > 1) {
+                const first = jsonOrCoods[0],
+                    last = jsonOrCoods[jsonOrCoods.length - 1]
+                if (first[0] == last[0] && first[1] == last[1]) {
+                    type = 'Polygon'
+                }
+            }
+        }
         return GeomCls.create(type, jsonOrCoods) as Geom
     } else {
         if (typeof jsonOrCoods !== 'string') {
