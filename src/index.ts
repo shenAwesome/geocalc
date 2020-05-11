@@ -175,4 +175,4 @@ function load() {
     })
 }
 
-export { load, toGeom, makePolygon }
+export { load, toGeom, makePolygon, Geom }
