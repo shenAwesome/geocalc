@@ -116,6 +116,12 @@ interface Geom {
      * @param change 
      */
     extendLine(change: number): Geom
+
+    /**
+     * create a line to other geometry
+     * @param geom2 
+     */
+    lineTo(geom2: Geom): Geom
 }
 
 type geomType = 'Point' | 'LineString' | 'Polygon'
