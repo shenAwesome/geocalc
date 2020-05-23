@@ -1,4 +1,4 @@
-import '../lib/test.nocache.js'
+import '../lib/geocalc.nocache'
 
 let GeomCls = null as any;
 function install() {
@@ -16,7 +16,7 @@ interface Geom {
      * Computes a buffer area around this geometry having the given width.
      * @param radius 
      */
-    buffer(distance: number): Geom
+    buffer(distance: number, options?: number[]): Geom
 
     /**
      * Export as GeoJSON
