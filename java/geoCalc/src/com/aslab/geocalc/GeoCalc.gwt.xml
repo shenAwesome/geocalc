@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC "-//Google Inc.//DTD Google Web Toolkit 2.8.2//EN"
+  "http://gwtproject.org/doctype/2.8.2/gwt-module.dtd">
+<module rename-to='geocalc'>
+	<inherits name='com.google.gwt.user.User' />
+	<inherits name='org.timepedia.exporter.Exporter' /> 
+	<entry-point class='com.aslab.geocalc.client.GeoCalc' />
+	
+	<source path='client' />
+	<super-source path='super' />  
+	<set-property name="user.agent" value="safari" />
+	<set-property name="export" value="yes" />
+	<add-linker name="sso" />
+	
+	<!-- 
+	<add-linker name="xsiframe" />
+	<add-linker name="sso"/>
+	 -->
+</module>
