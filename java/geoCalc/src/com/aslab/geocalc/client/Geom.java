@@ -3,6 +3,7 @@ package com.aslab.geocalc.client;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import org.locationtech.jts.densify.Densifier;
@@ -11,6 +12,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineSegment;
 import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.geom.util.LineStringExtracter;
 import org.locationtech.jts.geomgraph.Position;
@@ -34,6 +36,7 @@ import com.google.gwt.core.client.JavaScriptObject;
 @ExportPackage("jts")
 public class Geom implements Exportable {
 	static GeometryFactory factory = new GeometryFactory();
+	static double Tolerance = 0.000001;
 
 	private static double round(double value) {
 		return (double) Math.round(value * 100000d) / 100000d;
@@ -43,7 +46,7 @@ public class Geom implements Exportable {
 		List<Coordinate> coordList = new ArrayList<Coordinate>();
 		Coordinate last = null;
 		for (Coordinate pt : pts) {
-			if (last == null || !pt.equals2D(last, 0.000001)) {
+			if (last == null || !pt.equals2D(last, Tolerance)) {
 				coordList.add(pt);
 				last = pt;
 			}
@@ -106,56 +109,49 @@ public class Geom implements Exportable {
 
 	private Geom createPoint(Coordinate coord) {
 		return create(new GeometryFactory().createPoint(coord));
-	} 
-	
+	}
+
 	public static native String getType(double[] msg) /*-{
-	    return "hello"
+		return "hello"
 	}-*/;
-	
-	public Geom buffer(double radius) { 
-		return buffer(radius,new double[0]);
-	} 
-	
+
+	public Geom buffer(double radius) {
+		return buffer(radius, new double[0]);
+	}
+
 	/**
-	 * int joinStyle, int endCapStyle, quadrantSegments or mitreLimit, 
-	 * JOIN_ROUND,JOIN_MITRE,JOIN_BEVEL
-	 * CAP_ROUND,CAP_FLAT,CAP_SQUARE
+	 * int joinStyle, int endCapStyle, quadrantSegments or mitreLimit,
+	 * JOIN_ROUND,JOIN_MITRE,JOIN_BEVEL CAP_ROUND,CAP_FLAT,CAP_SQUARE
 	 * 
 	 * @param radius
 	 * @param params
 	 * @return
-	 */ 
+	 */
 	public Geom buffer(double radius, double[] params) {
 		BufferParameters bufferParams = new BufferParameters();
-		
-		int len = params.length; 
-		if (len > 0) { 
-			int type = new int[] {
-					BufferParameters.JOIN_ROUND,
-					BufferParameters.JOIN_MITRE,
-					BufferParameters.JOIN_BEVEL
-			}[(int) params[0]];
+
+		int len = params.length;
+		if (len > 0) {
+			int type = new int[] { BufferParameters.JOIN_ROUND, BufferParameters.JOIN_MITRE,
+					BufferParameters.JOIN_BEVEL }[(int) params[0]];
 			bufferParams.setJoinStyle(type);
-		}  
+		}
 		if (len > 1) {
-			int type = new int[] {
-					BufferParameters.CAP_ROUND,
-					BufferParameters.CAP_FLAT,
-					BufferParameters.CAP_SQUARE
-			}[(int) params[1]]; 
-			bufferParams.setEndCapStyle(type); 
-		} 
+			int type = new int[] { BufferParameters.CAP_ROUND, BufferParameters.CAP_FLAT,
+					BufferParameters.CAP_SQUARE }[(int) params[1]];
+			bufferParams.setEndCapStyle(type);
+		}
 		if (len > 2) {
-			if ((int) params[0]==0) {
-				bufferParams.setQuadrantSegments((int)params[2]); 
-			}else {
-				bufferParams.setMitreLimit(params[2]); 
-			} 
-		} 
-		
+			if ((int) params[0] == 0) {
+				bufferParams.setQuadrantSegments((int) params[2]);
+			} else {
+				bufferParams.setMitreLimit(params[2]);
+			}
+		}
+
 		Geometry bufferred = BufferOp.bufferOp(geom, radius, bufferParams);
 		return create(bufferred);
-	} 
+	}
 
 	public Geom simplify(double tolerance) {
 		Geometry simplilfied = DouglasPeuckerSimplifier.simplify(geom, tolerance);
@@ -176,9 +172,15 @@ public class Geom implements Exportable {
 		return create(factory.createLineString(pts));
 	}
 
-	public double lengthOnLine(Geom geom2) {
-		LengthIndexedLine indexedLine = new LengthIndexedLine(geom);
-		return indexedLine.indexOf(geom2.geom.getCoordinate());
+	public double lengthOnLine(Geom line) {
+		LengthIndexedLine indexedLine = new LengthIndexedLine(line.geom);
+		return indexedLine.indexOf(geom.getCoordinate());
+	}
+	
+	public double ratioOnLine(Geom line) {
+		LengthIndexedLine indexedLine = new LengthIndexedLine(line.geom);
+		double idx = indexedLine.indexOf(geom.getCoordinate());
+		return idx/indexedLine.getEndIndex();
 	}
 
 	public Geom along(double distance) {
@@ -246,25 +248,27 @@ public class Geom implements Exportable {
 
 	public Geom[] splitLine(Geom[] points) {
 		LengthIndexedLine indexedLine = new LengthIndexedLine(this.geom);
-		List<Geom> parts = new ArrayList<Geom>();
-		for (int i = 0; i < points.length; i++) {
-			boolean isFirst = i == 0;
-			boolean isLast = i == points.length - 1;
+		List<Double> allIndex = new ArrayList<Double>(); 
+		 
+		allIndex.add(indexedLine.getStartIndex());
+		for (Geom p : points) {
+			Coordinate point = p.geom.getCoordinate();
+			allIndex.add(indexedLine.indexOf(point));
+		}
+		allIndex.add(indexedLine.getEndIndex());
+		
+		Collections.sort(allIndex);
 
-			if (isFirst) {
-				double start = indexedLine.getStartIndex();
-				double end = indexedLine.indexOf(points[i].geom.getCoordinate());
-				parts.add(create(indexedLine.extractLine(start, end)));
-			} else {
-				double start = indexedLine.indexOf(points[i - 1].geom.getCoordinate());
-				double end = indexedLine.indexOf(points[i].geom.getCoordinate());
-				parts.add(create(indexedLine.extractLine(start, end)));
-			}
-			if (isLast) {
-				double start = indexedLine.indexOf(points[i].geom.getCoordinate());
-				double end = indexedLine.getEndIndex();
-				parts.add(create(indexedLine.extractLine(start, end)));
-			}
+		// keep order , to fix ring issue
+//		for (int i = 1; i < allIndex.size() - 1; i++) {
+//			if (allIndex.get(i) > allIndex.get(i + 1)) {
+//				allIndex.set(i, allIndex.get(i - 1));
+//			}
+//		}
+
+		List<Geom> parts = new ArrayList<Geom>();
+		for (int i = 0; i < allIndex.size() - 1; i++) {
+			parts.add(create(indexedLine.extractLine(allIndex.get(i), allIndex.get(i + 1))));
 		}
 		return parts.toArray(new Geom[0]);
 	}
@@ -277,7 +281,7 @@ public class Geom implements Exportable {
 		Geometry line2 = lines[0].geom;
 		ArrayList<Coordinate> both = new ArrayList<Coordinate>(Arrays.asList(line1.getCoordinates()));
 		both.addAll(Arrays.asList(line2.getCoordinates()));
-		Coordinate[] coords = both.toArray(new Coordinate[0]);
+		Coordinate[] coords = noDuplicate(both.toArray(new Coordinate[0]));
 
 		result[result.length - 1] = create(factory.createLineString(coords));
 		return result;
@@ -292,16 +296,17 @@ public class Geom implements Exportable {
 	public Geom offsetLine(double offsetDistance) {
 		BufferParameters params = new BufferParameters();
 		params.setJoinStyle(BufferParameters.JOIN_MITRE);
-		//params.setMitreLimit(2);
-		params.setSingleSided(true); 
-		Polygon bufferred = (Polygon)BufferOp.bufferOp(geom, offsetDistance,params); 
-		
-		Coordinate[] coords =  bufferred.getExteriorRing().difference(geom.buffer(0.001)).getCoordinates();
-		Coordinate[] trimmed = Arrays.copyOfRange(coords, 1, coords.length-1);
-		 
-		return create(factory.createLineString(trimmed)); 
-	    //offset line is to use the single sided offset buffer and remove the original line and the last, closing point.
-		//get the ring then difference ?  
+		// params.setMitreLimit(2);
+		params.setSingleSided(true);
+		Polygon bufferred = (Polygon) BufferOp.bufferOp(geom, offsetDistance, params);
+
+		Coordinate[] coords = bufferred.getExteriorRing().difference(geom.buffer(0.001)).getCoordinates();
+		Coordinate[] trimmed = Arrays.copyOfRange(coords, 1, coords.length - 1);
+
+		return create(factory.createLineString(trimmed));
+		// offset line is to use the single sided offset buffer and remove the original
+		// line and the last, closing point.
+		// get the ring then difference ?
 	}
 
 	/**
@@ -317,7 +322,7 @@ public class Geom implements Exportable {
 		} else {
 			LineSegment lastSeg = new LineSegment(coords[coords.length - 2], coords[coords.length - 1]);
 			double len = lastSeg.getLength();
-			coords[coords.length - 1] = lastSeg.pointAlong((len + change) / len); 
+			coords[coords.length - 1] = lastSeg.pointAlong((len + change) / len);
 			return create(factory.createLineString(coords));
 		}
 	}
@@ -327,18 +332,18 @@ public class Geom implements Exportable {
 		if (len > 0) {
 			if (atStart) {
 				Coordinate newStart = seg.pointAlong(-distance / len);
-				//seg.setCoordinates(newStart, seg.p1);
+				// seg.setCoordinates(newStart, seg.p1);
 				return new LineSegment(newStart, seg.p1);
 			} else {
 				Coordinate newEnd = seg.pointAlong((len + distance) / len);
-				//seg.setCoordinates(seg.p0, newEnd);
+				// seg.setCoordinates(seg.p0, newEnd);
 				return new LineSegment(seg.p0, newEnd);
 			}
 		}
 		return seg;
 	}
-	
-	public Geom splitByLine(Geom line){
+
+	public Geom splitByLine(Geom line) {
 		Geometry col = PolygonTools.splitPolygon(geom, line.geom);
 		return create(col);
 	}
@@ -355,7 +360,7 @@ public class Geom implements Exportable {
 		Coordinate[][] allCoords = new Coordinate[lines.length][];
 		for (int i = 0; i < lines.length; i++) {
 			allCoords[i] = noDuplicate(lines[i].geom.getCoordinates());
-		} 
+		}
 
 		for (int i = 0; i < lines.length; i++) {
 			Coordinate[] current = allCoords[i];
@@ -366,10 +371,10 @@ public class Geom implements Exportable {
 			segA = extendSegment(segA, gap * mitreLimit, false);
 			segB = extendSegment(segB, gap * mitreLimit, true);
 			Coordinate intersection = segA.intersection(segB);
-			 
+
 			if (intersection != null) {
 				current[current.length - 1] = intersection;
-				next[0] = intersection; 
+				next[0] = intersection;
 			}
 		}
 
@@ -377,7 +382,7 @@ public class Geom implements Exportable {
 		for (Coordinate[] coords : allCoords) {
 			coordList.addAll(Arrays.asList(coords));
 		}
-		coordList.add(coordList.get(0));// make sure it's a ring 
+		coordList.add(coordList.get(0));// make sure it's a ring
 
 		Polygon polygon = factory.createPolygon(noDuplicate(coordList.toArray(new Coordinate[0])));
 

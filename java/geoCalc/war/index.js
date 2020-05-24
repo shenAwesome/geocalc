@@ -133,10 +133,17 @@ function main() {
     addGeom(point2)
 
     const point3 = toGeom(GeoJSON2.features[6].geometry)
-    addGeom(point3)
+    addGeom(point3);
+
+    [point1, point2, point3].forEach(p => {
+      //console.log(p.lengthOnLine(line))
+      console.log(p.ratioOnLine(line))
+    })
 
     const splitted = line.splitRing([point1, point2, point3])
+    console.log(splitted.length)
     splitted.forEach((s, i) => {
+      console.log(s.toJSON())
       addGeom(s, getRandomColor())
     })
 
