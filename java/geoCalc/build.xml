@@ -61,7 +61,7 @@
 
   <target name="clean" description="Cleans this project">
     <delete dir="war/WEB-INF/classes" failonerror="false" />
-    <delete dir="war/mywebapp" failonerror="false" />
+    <delete dir="war/geocalc" failonerror="false" />
   </target>
 
 </project>

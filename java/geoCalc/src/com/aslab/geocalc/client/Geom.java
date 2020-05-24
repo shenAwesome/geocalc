@@ -240,7 +240,7 @@ public class Geom implements Exportable {
 		return geom.isWithinDistance(geom2.geom, distance);
 	}
 
-	public Geom densifier(double distanceTolerance) {
+	public Geom densify(double distanceTolerance) {
 		return create(Densifier.densify(geom, distanceTolerance));
 	}
 

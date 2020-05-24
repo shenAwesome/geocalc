@@ -89,7 +89,10 @@ function main() {
     poly2 = geom.buffer(200, [0, 0])
     addGeom(poly2)
 
+    addGeom(poly2.simplify(50), 'red')
+
     addGeom(poly1.intersection(poly2), '#ff7800')
+
   }
 
   {

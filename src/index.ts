@@ -13,8 +13,9 @@ window.setTimeout(install, 1)
 interface Geom {
 
     /**
-     * Computes a buffer area around this geometry having the given width.
-     * @param radius 
+     * buffer a geometry to a polygon
+     * @param distance 
+     * @param options [ JoinStyle(0,1,2), CapStyle(0,1,2), QUADRANT_SEGMENTS|MITRE_LIMIT ]
      */
     buffer(distance: number, options?: number[]): Geom
 
@@ -91,7 +92,7 @@ interface Geom {
 
     isWithinDistance(geom2: Geom, distance: number): boolean
 
-    densifier(distanceTolerance: number): Geom
+    densify(distanceTolerance: number): Geom
 
     /**
      * For a closed lineString (ring), split by points
