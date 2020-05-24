@@ -48,11 +48,16 @@ interface Geom {
     nearestPoints(geom2: Geom): Geom[]
 
     /**
-     * For a lineString, slice it with start point and another point, calculate the length
-     * probably should be rename as lengthOnline
+     * For a point, find it's position on a line as length to the start
      * @param point 
      */
-    lengthOnLine(point: Geom): number
+    lengthOnLine(line: Geom): number
+
+    /**
+     * For a point, find it's position on a line as ratio
+     * @param point 
+     */
+    ratioOnLine(line: Geom): number
 
     /**
      * For a lineString, return the point at a specified distance along the line
