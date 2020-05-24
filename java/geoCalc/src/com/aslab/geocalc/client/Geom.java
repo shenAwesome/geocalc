@@ -337,6 +337,11 @@ public class Geom implements Exportable {
 		}
 		return seg;
 	}
+	
+	public Geom splitByLine(Geom line){
+		Geometry col = PolygonTools.splitPolygon(geom, line.geom);
+		return create(col);
+	}
 
 	public static Geom makePolygon(Geom[] lines, double mitreLimit) {
 		// iterate through lines, modify segments to make them 'link'

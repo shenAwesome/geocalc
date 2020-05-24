@@ -145,7 +145,7 @@ function main() {
       line1 = toGeom(GeoJSON3.features[1].geometry),
       line2 = toGeom(GeoJSON3.features[2].geometry)
 
-    const polygon = jts.Geom.makePolygon([line0, line1, line2], 5)
+    const polygon = jts.Geom.makePolygon([line0, line1, line2], 2)
     addGeom(polygon)
 
     addGeom(line0, '#ff7800')
