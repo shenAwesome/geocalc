@@ -2,5 +2,5 @@ xcopy /s/e/y ".\java\geoCalc\war\geocalc\geocalc.nocache.js" ".\lib\geocalc.noca
 
 call tsc
 git commit -a -m "gogo"
-npm version patch
-npm publish
+call npm version patch
+call npm publish
