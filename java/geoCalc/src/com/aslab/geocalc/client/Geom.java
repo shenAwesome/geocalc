@@ -11,17 +11,13 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineSegment;
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.geom.util.LineStringExtracter;
-import org.locationtech.jts.geomgraph.Position;
 import org.locationtech.jts.io.geojson.GeoJsonReader;
 import org.locationtech.jts.io.geojson.GeoJsonWriter;
 import org.locationtech.jts.linearref.LengthIndexedLine;
 import org.locationtech.jts.operation.buffer.BufferOp;
 import org.locationtech.jts.operation.buffer.BufferParameters;
-import org.locationtech.jts.operation.buffer.OffsetCurveBuilder;
 import org.locationtech.jts.operation.distance.DistanceOp;
 import org.locationtech.jts.operation.polygonize.Polygonizer;
 import org.locationtech.jts.simplify.DouglasPeuckerSimplifier;
@@ -29,7 +25,6 @@ import org.timepedia.exporter.client.Export;
 import org.timepedia.exporter.client.ExportPackage;
 import org.timepedia.exporter.client.Exportable;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
 
 @Export
@@ -406,6 +401,7 @@ class Coord extends JavaScriptObject {
 
 class PolygonTools {
 
+	@SuppressWarnings("rawtypes")
 	public static Geometry polygonize(Geometry geometry) {
 		List lines = LineStringExtracter.getLines(geometry);
 		Polygonizer polygonizer = new Polygonizer();
@@ -417,8 +413,7 @@ class PolygonTools {
 
 	public static Geometry splitPolygon(Geometry poly, Geometry line) {
 		Geometry nodedLinework = poly.getBoundary().union(line);
-		Geometry polys = polygonize(nodedLinework);
-
+		Geometry polys = polygonize(nodedLinework); 
 		// Only keep polygons which are inside the input
 		List<Polygon> output = new ArrayList<Polygon>();
 		for (int i = 0; i < polys.getNumGeometries(); i++) {
