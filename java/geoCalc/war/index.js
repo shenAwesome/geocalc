@@ -79,7 +79,7 @@ function main() {
 
   {
     const geom = toGeom(GeoJSON1.features[0].geometry)
-    poly1 = geom.buffer(200, [0, 0])
+    poly1 = geom.buffer(100, [1, 0])//shen
     addGeom(poly1)
   }
 
@@ -98,7 +98,7 @@ function main() {
   {
     const geom = toGeom(GeoJSON1.features[2].geometry)
     addGeom(geom, '#ff7800')
-    addGeom(geom.buffer(100, [1, 1]))
+    addGeom(geom.buffer(100, [1, 0]))
   }
 
   proj(GeoJSON2)

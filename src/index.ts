@@ -15,7 +15,7 @@ interface Geom {
     /**
      * buffer a geometry to a polygon
      * @param distance 
-     * @param options [ JoinStyle(0,1,2), CapStyle(0,1,2), QUADRANT_SEGMENTS|MITRE_LIMIT ]
+     * @param options [ JoinStyle(0,1,2=round,mitre,bevel), CapStyle(0,1,2=round,flat,square), QUADRANT_SEGMENTS|MITRE_LIMIT ]
      */
     buffer(distance: number, options?: number[]): Geom
 

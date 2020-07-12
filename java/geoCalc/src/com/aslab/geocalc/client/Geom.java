@@ -115,8 +115,8 @@ public class Geom implements Exportable {
 	}
 
 	/**
-	 * int joinStyle, int endCapStyle, quadrantSegments or mitreLimit,
-	 * JOIN_ROUND,JOIN_MITRE,JOIN_BEVEL CAP_ROUND,CAP_FLAT,CAP_SQUARE
+	 * params = [ joinStyle, endCapStyle, quadrantSegments or mitreLimit],
+	 * 0=JOIN_ROUND,1=JOIN_MITRE,2=JOIN_BEVEL; 0=CAP_ROUND,1=CAP_FLAT,2=CAP_SQUARE
 	 * 
 	 * @param radius
 	 * @param params
