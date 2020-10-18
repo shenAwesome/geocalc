@@ -33,12 +33,8 @@ public class Geom implements Exportable {
 	static GeometryFactory factory = new GeometryFactory();
 	static double Tolerance = 0.000001;
 
-	private static double round(double value) {
-		return (double) Math.round(value * 100000d) / 100000d;
-	}
-
 	private static Coordinate[] noDuplicate(Coordinate[] pts) {
-		List<Coordinate> coordList = new ArrayList<Coordinate>();
+		List<Coordinate> coordList = new ArrayList<>();
 		Coordinate last = null;
 		for (Coordinate pt : pts) {
 			if (last == null || !pt.equals2D(last, Tolerance)) {
@@ -52,22 +48,14 @@ public class Geom implements Exportable {
 	public static Geom create(String type, Coord[] pts) {
 		Geometry geom = null;
 
-		List<Coordinate> coordList = new ArrayList<Coordinate>();
-		for (Coord pt : pts) {
-			coordList.add(new Coordinate(pt.getX(), pt.getY()));
-		}
+		List<Coordinate> coordList = new ArrayList<>();
+		for (Coord pt : pts) coordList.add(new Coordinate(pt.getX(), pt.getY()));
 
 		Coordinate[] coords = noDuplicate(coordList.toArray(new Coordinate[0]));
 
-		if (type.equalsIgnoreCase("Point")) {
-			geom = factory.createPoint(coords[0]);
-		}
-		if (type.equalsIgnoreCase("LineString")) {
-			geom = factory.createLineString(coords);
-		}
-		if (type.equalsIgnoreCase("Polygon")) {
-			geom = factory.createPolygon(coords);
-		}
+		if (type.equalsIgnoreCase("Point")) geom = factory.createPoint(coords[0]);
+		if (type.equalsIgnoreCase("LineString")) geom = factory.createLineString(coords);
+		if (type.equalsIgnoreCase("Polygon")) geom = factory.createPolygon(coords);
 
 		return geom == null ? null : create(geom);
 	}
@@ -87,7 +75,7 @@ public class Geom implements Exportable {
 	public Geom(String json) {
 		try {
 			geom = (new GeoJsonReader()).read(json);
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 		}
 	}
 
@@ -243,7 +231,7 @@ public class Geom implements Exportable {
 
 	public Geom[] splitLine(Geom[] points) {
 		LengthIndexedLine indexedLine = new LengthIndexedLine(this.geom);
-		List<Double> allIndex = new ArrayList<Double>(); 
+		List<Double> allIndex = new ArrayList<>();
 		 
 		allIndex.add(indexedLine.getStartIndex());
 		for (Geom p : points) {
@@ -261,7 +249,7 @@ public class Geom implements Exportable {
 //			}
 //		}
 
-		List<Geom> parts = new ArrayList<Geom>();
+		List<Geom> parts = new ArrayList<>();
 		for (int i = 0; i < allIndex.size() - 1; i++) {
 			parts.add(create(indexedLine.extractLine(allIndex.get(i), allIndex.get(i + 1))));
 		}
@@ -373,7 +361,7 @@ public class Geom implements Exportable {
 			}
 		}
 
-		List<Coordinate> coordList = new ArrayList<Coordinate>();
+		List<Coordinate> coordList = new ArrayList<>();
 		for (Coordinate[] coords : allCoords) {
 			coordList.addAll(Arrays.asList(coords));
 		}
@@ -415,7 +403,7 @@ class PolygonTools {
 		Geometry nodedLinework = poly.getBoundary().union(line);
 		Geometry polys = polygonize(nodedLinework); 
 		// Only keep polygons which are inside the input
-		List<Polygon> output = new ArrayList<Polygon>();
+		List<Polygon> output = new ArrayList<>();
 		for (int i = 0; i < polys.getNumGeometries(); i++) {
 			Polygon candpoly = (Polygon) polys.getGeometryN(i);
 			if (poly.contains(candpoly.getInteriorPoint())) {
