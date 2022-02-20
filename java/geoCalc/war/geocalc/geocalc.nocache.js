@@ -1,5 +1,5 @@
-var $wnd = this;
-var $_window = this;
+var $wnd = window;
+var $_window = $wnd;
 var $gwt_version = "2.8.2";
 var $stats = $wnd.__gwtStatsEvent ? function(a) {$wnd.__gwtStatsEvent(a)} : null;
 var $sessionId = function() { };
