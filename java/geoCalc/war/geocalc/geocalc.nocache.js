@@ -7,6 +7,8 @@ var $doc = { compatMode:'CSS1Compat'};
 var $moduleName = null;
 var $moduleBase = null;
 $wnd.Error = $wnd.Error||{}  
+navigator.userAgent = navigator.userAgent||'AppleWebKit/537.36'
+   
 
 function S(){}
 function Qk(){}
