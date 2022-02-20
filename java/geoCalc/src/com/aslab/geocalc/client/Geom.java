@@ -30,8 +30,8 @@ import com.google.gwt.core.client.JavaScriptObject;
 @Export
 @ExportPackage("jts")
 public class Geom implements Exportable {
-	static GeometryFactory factory = new GeometryFactory();
-	static double Tolerance = 0.000001;
+	static final GeometryFactory factory = new GeometryFactory();
+	static final double Tolerance = 0.000001;
 
 	private static Coordinate[] noDuplicate(Coordinate[] pts) {
 		List<Coordinate> coordList = new ArrayList<>();
@@ -132,13 +132,13 @@ public class Geom implements Exportable {
 			}
 		}
 
-		Geometry bufferred = BufferOp.bufferOp(geom, radius, bufferParams);
-		return create(bufferred);
+		Geometry buffered = BufferOp.bufferOp(geom, radius, bufferParams);
+		return create(buffered);
 	}
 
 	public Geom simplify(double tolerance) {
-		Geometry simplilfied = DouglasPeuckerSimplifier.simplify(geom, tolerance);
-		return create(simplilfied);
+		Geometry simplified = DouglasPeuckerSimplifier.simplify(geom, tolerance);
+		return create(simplified);
 	}
 
 	public double distance(Geom geom2) {
@@ -262,7 +262,7 @@ public class Geom implements Exportable {
 
 		Geometry line1 = lines[lines.length - 1].geom;
 		Geometry line2 = lines[0].geom;
-		ArrayList<Coordinate> both = new ArrayList<Coordinate>(Arrays.asList(line1.getCoordinates()));
+		ArrayList<Coordinate> both = new ArrayList<>(Arrays.asList(line1.getCoordinates()));
 		both.addAll(Arrays.asList(line2.getCoordinates()));
 		Coordinate[] coords = noDuplicate(both.toArray(new Coordinate[0]));
 
