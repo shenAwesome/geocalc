@@ -71,7 +71,7 @@ public class SimpleLinker extends AbstractLinker {
         out.newline();
         out.print("var $sessionId = function() { };");
         out.newline();
-        out.print("$doc = { compatMode:'CSS1Compat'};");
+        out.print("var $doc = { compatMode:'CSS1Compat'};");
         out.newline();
 
         final Set<CompilationResult> results = artifacts.find(CompilationResult.class);
