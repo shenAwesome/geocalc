@@ -4,6 +4,8 @@ var $gwt_version = "2.8.2";
 var $stats = $wnd.__gwtStatsEvent ? function(a) {$wnd.__gwtStatsEvent(a)} : null;
 var $sessionId = function() { };
 var $doc = { compatMode:'CSS1Compat'};
+var $moduleName = null;
+var $moduleBase = null;
 $wnd.Error = $wnd.Error||{}  
 
 function S(){}
