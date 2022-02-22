@@ -17,36 +17,36 @@ const GeomCls = window['jts'].Geom
 interface Geom {
 
     /**
-     * buffer a geometry to a polygon
+     * Computes the buffer for a geometry for a given buffer distance.
      * @param distance 
      * @param options [ JoinStyle(0,1,2=round,mitre,bevel), CapStyle(0,1,2=round,flat,square), QUADRANT_SEGMENTS|MITRE_LIMIT ]
      */
     buffer(distance: number, options?: number[]): Geom
 
     /**
-     * Export as GeoJSON
+     * Writes a Geometry in GeoJson format to a String.
      */
     toJSON(): string
 
     /**
-     * A vertex of this Geometry
+     * Returns a vertex of this Geometry (usually, but not necessarily, the first one)
      */
     coordinate(): number[]
 
     /**
-     * Simplifies the Geometry 
+     * Simplifies a geometry using a given tolerance.
      * @param tolerance 
      */
     simplify(tolerance: number): Geom
 
     /**
-     * Minimum distance to another Geometry
+     * Returns the minimum distance between this Geometry and another Geometry.
      * @param geom2 
      */
     distance(geom2: Geom): number
 
     /**
-     * Shortest path to another geometry
+     * Compute the the nearest points of two geometries
      * @param geom2 
      */
     nearestPoints(geom2: Geom): Geom[]
