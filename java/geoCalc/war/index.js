@@ -1,3 +1,5 @@
+console.log(jts.Geom)
+
 function main() {
 
   function projCoord(coord) {

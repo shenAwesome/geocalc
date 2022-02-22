@@ -1,5 +1,6 @@
 import '../lib/geocalc.nocache'
 
+/*
 let GeomCls = null as any;
 function install() {
     if (window['jts'] && window['jts'].Geom) {
@@ -9,6 +10,9 @@ function install() {
     }
 }
 window.setTimeout(install, 1)
+*/
+
+const GeomCls = window['jts'].Geom
 
 interface Geom {
 
@@ -72,31 +76,80 @@ interface Geom {
      */
     extractLine(start: number, end: number): Geom
 
+    /**
+     * Returns the area of this Geometry
+     */
     area(): number
 
+    /**
+     * Returns the length of this Geometry. 
+     * Linear geometries return their length. 
+     * Areal geometries return their perimeter. 
+     */
     length(): number
 
+    /**
+     * Computes a Geometry representing the point-set which is contained in both this Geometry and the other Geometry.
+     * @param geom2 
+     */
     union(geom2: Geom): Geom
 
+    /**
+     * Computes a Geometry representing the closure of the point-set of the points contained in this Geometry that are not contained in the other Geometry.
+     * @param geom2 
+     */
     difference(geom2: Geom): Geom
 
+    /**
+     * Computes a Geometry representing the point-set which is common to both this Geometry and the other Geometry.
+     * @param geom2 
+     */
     intersection(geom2: Geom): Geom
 
-    norm(geom2: Geom): Geom
+    /**
+     * Creates a new Geometry which is a normalized copy of this Geometry.
+     * Normal form is a unique representation for Geometry 
+     */
+    norm(): Geom
+
+    /**
+     * Computes an interior point of this Geometry. An interior point is guaranteed to lie in the interior of the Geometry
+     */
+    getInteriorPoint():Geom 
 
     /**
     * return geometry type
     */
-    type(): string
-
+    type(): string 
+    
+    /**
+     * Computes the centroid of this Geometry
+     */
     getCentroid(): Geom
 
+    /**
+     * Tests whether this geometry contains the argument geometry.
+     * @param geom2 
+     */
     contains(geom2: Geom): boolean
 
+    /**
+     * Tests whether this geometry overlaps the specified geometry.
+     * @param geom2 
+     */
     overlaps(geom2: Geom): boolean
 
+    /**
+     * Tests whether the distance from this Geometry to another is less than or equal to a specified value.
+     * @param geom2 
+     * @param distance 
+     */
     isWithinDistance(geom2: Geom, distance: number): boolean
 
+    /**
+     * Densifies a geometry using a given distance tolerance
+     * @param distanceTolerance 
+     */
     densify(distanceTolerance: number): Geom
 
     /**
@@ -138,20 +191,20 @@ type geomType = 'Point' | 'LineString' | 'Polygon'
  * @param jsonOrCoods GeoJSON (string or Object) or Coords (number[][])
  * @param type 'Point'|'LineString'|'Polygon', ignored when GeoJSON is given
  */
-function toGeom(jsonOrCoods: string | number[][] | any, type = null as geomType) {
+function toGeom(jsonOrCoods: string | number[][] | number[] | any, type = null as geomType) {
     if (Array.isArray(jsonOrCoods)) {
-        if (!Array.isArray(jsonOrCoods[0])) jsonOrCoods = [jsonOrCoods]
+        let coords = jsonOrCoods as number[][] 
+        if (!Array.isArray(coords[0])) coords = [coords as any]
         if (type == null) {
-            type = jsonOrCoods.length == 1 ? 'Point' : 'LineString'
-            if (jsonOrCoods.length > 1) {
-                const first = jsonOrCoods[0],
-                    last = jsonOrCoods[jsonOrCoods.length - 1]
-                if (first[0] == last[0] && first[1] == last[1]) {
+            type = coords.length == 1 ? 'Point' : 'LineString'
+            if (coords.length > 1) {
+                const first = coords[0],  last = coords[coords.length - 1]
+                if (first[0] == last[0] && first[1] == last[1]) {//first is same as last, a ring
                     type = 'Polygon'
                 }
             }
         }
-        return GeomCls.create(type, jsonOrCoods) as Geom
+        return GeomCls.create(type, coords) as Geom
     } else {
         if (typeof jsonOrCoods !== 'string') {
             jsonOrCoods = JSON.stringify(jsonOrCoods)
@@ -174,7 +227,8 @@ function makePolygon(lines: Geom[], mitreLimit = 2) {
 /**
  * A Promise to notify that geocalc has been fully loaded. It is only a safe check. engine normally gets loaded within milliseconds
  */
-function load() {
+//not needed anymore
+function _load() {
     return new Promise<void>(resolve => {
         function check() {
             if (GeomCls) {
@@ -187,4 +241,4 @@ function load() {
     })
 }
 
-export { load, toGeom, makePolygon, Geom }
+export { toGeom, makePolygon, Geom }

@@ -11,6 +11,8 @@ import com.google.gwt.core.ext.linker.LinkerOrder.Order;
 import com.google.gwt.dev.About;
 import com.google.gwt.dev.util.DefaultTextOutput;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 //delight.gwt.simplelinker.SimpleLinker.java
@@ -61,6 +63,7 @@ public class SimpleLinker extends AbstractLinker {
         final DefaultTextOutput out = new DefaultTextOutput(true);
 
         // out.print("var $stats = function() { };");
+        /*
         out.print("var $wnd = this;");
         out.newline();
         out.print("var $_window = this;");
@@ -73,6 +76,21 @@ public class SimpleLinker extends AbstractLinker {
         out.newline();
         out.print("var $doc = { compatMode:'CSS1Compat'};");
         out.newline();
+         */
+        List<String> lines = Arrays.asList("var $wnd = window;",
+                "var $_window = $wnd;",
+                "var $gwt_version = '2.8.2';",
+                "var $stats = $wnd.__gwtStatsEvent ? function(a) {$wnd.__gwtStatsEvent(a)} : null;",
+                "var $sessionId = function() { };",
+                "var $doc = { compatMode:'CSS1Compat'};",
+                "var $moduleName = null;",
+                "var $moduleBase = null;",
+                "$wnd.Error = $wnd.Error||{}",
+                "navigator.userAgent = navigator.userAgent||'AppleWebKit/537.36'");
+        for ( String line: lines) {
+            out.print(line);
+            out.newline();
+        }
 
         final Set<CompilationResult> results = artifacts.find(CompilationResult.class);
         CompilationResult result = null;
