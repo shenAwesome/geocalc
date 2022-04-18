@@ -4,5 +4,6 @@
         "./src/index.ts"
     ],
     "out": "docs",
-    "disableSources": true
+    "disableSources": true,
+    "plugin": "typedoc-plugin-markdown"
 }
