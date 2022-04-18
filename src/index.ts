@@ -14,14 +14,28 @@ window.setTimeout(install, 1)
 
 const GeomCls = window['jts'].Geom
 
+interface BufferOptions {
+    JoinStyle: 'Round' | 'Mitre' | 'Bevel'
+    CapStyle: 'Round' | 'Flat' | 'Square'
+    QuadrantSegments: number
+    MitreLimit: number
+}
+
 interface Geom {
 
     /**
      * Computes the buffer for a geometry for a given buffer distance.
+     * options:
+     *   JoinStyle: 'Round' | 'Mitre' | 'Bevel'
+     *   CapStyle: 'Round' | 'Flat' | 'Square'
+     *   QuadrantSegments: number
+     *   MitreLimit: number 
+     * ![](https://i.stack.imgur.com/zX8Nk.png)
      * @param distance 
-     * @param options [ JoinStyle(0,1,2=round,mitre,bevel), CapStyle(0,1,2=round,flat,square), QUADRANT_SEGMENTS|MITRE_LIMIT ]
+     * @param options  
+     * @example
      */
-    buffer(distance: number, options?: number[]): Geom
+    buffer(distance: number, options?: BufferOptions): Geom
 
     /**
      * Writes a Geometry in GeoJson format to a String.
@@ -115,13 +129,13 @@ interface Geom {
     /**
      * Computes an interior point of this Geometry. An interior point is guaranteed to lie in the interior of the Geometry
      */
-    getInteriorPoint():Geom 
+    getInteriorPoint(): Geom
 
     /**
     * return geometry type
     */
-    type(): string 
-    
+    type(): string
+
     /**
      * Computes the centroid of this Geometry
      */
@@ -193,12 +207,12 @@ type geomType = 'Point' | 'LineString' | 'Polygon'
  */
 function toGeom(jsonOrCoods: string | number[][] | number[] | any, type = null as geomType) {
     if (Array.isArray(jsonOrCoods)) {
-        let coords = jsonOrCoods as number[][] 
+        let coords = jsonOrCoods as number[][]
         if (!Array.isArray(coords[0])) coords = [coords as any]
         if (type == null) {
             type = coords.length == 1 ? 'Point' : 'LineString'
             if (coords.length > 1) {
-                const first = coords[0],  last = coords[coords.length - 1]
+                const first = coords[0], last = coords[coords.length - 1]
                 if (first[0] == last[0] && first[1] == last[1]) {//first is same as last, a ring
                     type = 'Polygon'
                 }
@@ -234,7 +248,7 @@ function _load() {
             if (GeomCls) {
                 resolve()
             } else {
-                setTimeout(check, 10);
+                setTimeout(check, 10)
             }
         }
         check()

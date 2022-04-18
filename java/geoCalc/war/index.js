@@ -81,18 +81,21 @@ function main() {
 
   {
     const geom = toGeom(GeoJSON1.features[0].geometry)
-    poly1 = geom.buffer(100, [1, 0])//shen
+    poly1 = geom.buffer(20, {
+        JoinStyle:'Mitre'
+    })
     addGeom(poly1)
   }
 
   {
     const geom = toGeom(GeoJSON1.features[1].geometry)
     addGeom(geom)
-    poly2 = geom.buffer(200, [0, 0])
+    poly2 = geom.buffer(200,{
+        QuadrantSegments:3
+    })
     addGeom(poly2)
 
     addGeom(poly2.simplify(50), 'red')
-
     addGeom(poly1.intersection(poly2), '#ff7800')
 
   }
@@ -100,7 +103,9 @@ function main() {
   {
     const geom = toGeom(GeoJSON1.features[2].geometry)
     addGeom(geom, '#ff7800')
-    addGeom(geom.buffer(100, [1, 0]))
+    addGeom(geom.buffer(100,{
+        CapStyle:'Flat'
+    }))
   }
 
   proj(GeoJSON2)

@@ -24,14 +24,28 @@ import org.locationtech.jts.simplify.DouglasPeuckerSimplifier;
 import org.timepedia.exporter.client.Export;
 import org.timepedia.exporter.client.ExportPackage;
 import org.timepedia.exporter.client.Exportable;
-
 import com.google.gwt.core.client.JavaScriptObject;
+
+class BufferOption extends JavaScriptObject{
+
+	public final native String JoinStyle()       /*-{return this.JoinStyle||'Round';  }-*/;
+	public final native String CapStyle()        /*-{ return this.CapStyle||'Round';  }-*/;
+	public final native int QuadrantSegments()  /*-{ return this.QuadrantSegments||8;  }-*/;
+	public final native double MitreLimit()     /*-{ return this.MitreLimit||5;  }-*/;
+
+	protected BufferOption(){ }
+}
 
 @Export
 @ExportPackage("jts")
 public class Geom implements Exportable {
 	static final GeometryFactory factory = new GeometryFactory();
 	static final double Tolerance = 0.000001;
+
+	public static native void log(String text)
+	/*-{
+		console.log(text);
+	}-*/;
 
 	private static Coordinate[] noDuplicate(Coordinate[] pts) {
 		List<Coordinate> coordList = new ArrayList<>();
@@ -98,8 +112,44 @@ public class Geom implements Exportable {
 		return "hello"
 	}-*/;
 
+
 	public Geom buffer(double radius) {
-		return buffer(radius, new double[0]);
+		return buffer(radius, null);
+	}
+
+	public Geom buffer(double radius, BufferOption option) {
+		String JoinStyle = "Round";
+		String CapStyle = "Round";
+		int QuadrantSegments = 8;
+		double MitreLimit = 5;
+		if (option!=null){
+			JoinStyle = option.JoinStyle();
+			CapStyle = option.CapStyle();
+			QuadrantSegments = option.QuadrantSegments();
+			MitreLimit = option.MitreLimit();
+		}
+
+		BufferParameters bufferParams = new BufferParameters();
+		//JoinStyle
+		int type = BufferParameters.JOIN_ROUND;
+		if (JoinStyle.equals("Mitre")) type = BufferParameters.JOIN_MITRE;
+		if (JoinStyle.equals("Bevel")) type = BufferParameters.JOIN_BEVEL;
+		bufferParams.setJoinStyle(type);
+		//CapStyle
+		type = BufferParameters.CAP_ROUND;
+		if (CapStyle.equals("Flat")) type = BufferParameters.CAP_FLAT;
+		if (CapStyle.equals("Square")) type = BufferParameters.CAP_SQUARE;
+		bufferParams.setEndCapStyle(type);
+		//others
+		bufferParams.setQuadrantSegments(QuadrantSegments);
+		bufferParams.setMitreLimit(MitreLimit);
+		//buffer
+		Geometry buffered = BufferOp.bufferOp(geom, radius, bufferParams);
+		return create(buffered);
+	}
+
+	private Geom _buffer(double radius) {
+		return _buffer(radius, new double[0]);
 	}
 
 	/**
@@ -110,7 +160,7 @@ public class Geom implements Exportable {
 	 * @param params
 	 * @return
 	 */
-	public Geom buffer(double radius, double[] params) {
+	private Geom _buffer(double radius, double[] params) {
 		BufferParameters bufferParams = new BufferParameters();
 
 		int len = params.length;
@@ -413,3 +463,6 @@ class PolygonTools {
 		return poly.getFactory().createGeometryCollection(GeometryFactory.toGeometryArray(output));
 	}
 }
+
+
+
