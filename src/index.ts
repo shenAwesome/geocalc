@@ -35,7 +35,7 @@ interface Geom {
      * @param options  
      * @example
      */
-    buffer(distance: number, options?: BufferOptions): Geom
+    buffer(distance: number, options?: Partial<BufferOptions>): Geom
 
     /**
      * Writes a Geometry in GeoJson format to a String.
