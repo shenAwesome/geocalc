@@ -256,3 +256,4 @@ function _load() {
 }
 
 export { toGeom, makePolygon, Geom }
+export type { BufferOptions }
