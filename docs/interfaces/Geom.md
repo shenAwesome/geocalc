@@ -71,22 +71,19 @@ ___
 
 ▸ **buffer**(`distance`, `options?`): [`Geom`](Geom.md)
 
-Computes the buffer for a geometry for a given buffer distance.
-options:
-  JoinStyle: 'Round' | 'Mitre' | 'Bevel'
-  CapStyle: 'Round' | 'Flat' | 'Square'
-  QuadrantSegments: number
-  MitreLimit: number
-![](https://i.stack.imgur.com/zX8Nk.png)
-
-**`example`**
+Computes the buffer of a geometry for a given distance.
+Options:
+- JoinStyle: 'Round' | 'Mitre' | 'Bevel', default = 'Round'
+- CapStyle: 'Round' | 'Flat' | 'Square', default = 'Round'
+- QuadrantSegments: int, default = 8
+- MitreLimit: float, default = 5.0
 
 #### Parameters
 
 | Name | Type |
 | :------ | :------ |
 | `distance` | `number` |
-| `options?` | `BufferOptions` |
+| `options?` | `Partial`<[`BufferOptions`](BufferOptions.md)\> |
 
 #### Returns
 

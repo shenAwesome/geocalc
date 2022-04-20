@@ -6,6 +6,7 @@
 
 ### Interfaces
 
+- [BufferOptions](interfaces/BufferOptions.md)
 - [Geom](interfaces/Geom.md)
 
 ### Functions

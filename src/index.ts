@@ -1,19 +1,5 @@
 import '../lib/geocalc.nocache'
 
-/*
-let GeomCls = null as any;
-function install() {
-    if (window['jts'] && window['jts'].Geom) {
-        GeomCls = window['jts'].Geom
-    } else {
-        window.setTimeout(install, 10)
-    }
-}
-window.setTimeout(install, 1)
-*/
-
-const GeomCls = window['jts'].Geom
-
 interface BufferOptions {
     JoinStyle: 'Round' | 'Mitre' | 'Bevel'
     CapStyle: 'Round' | 'Flat' | 'Square'
@@ -24,16 +10,12 @@ interface BufferOptions {
 interface Geom {
 
     /**
-     * Computes the buffer for a geometry for a given buffer distance.
-     * options:
-     *   JoinStyle: 'Round' | 'Mitre' | 'Bevel'
-     *   CapStyle: 'Round' | 'Flat' | 'Square'
-     *   QuadrantSegments: number
-     *   MitreLimit: number 
-     * ![](https://i.stack.imgur.com/zX8Nk.png)
-     * @param distance 
-     * @param options  
-     * @example
+     * Computes the buffer of a geometry for a given distance. 
+     * Options:
+     * - JoinStyle: 'Round' | 'Mitre' | 'Bevel', default = 'Round'      
+     * - CapStyle: 'Round' | 'Flat' | 'Square', default = 'Round'  
+     * - QuadrantSegments: int, default = 8   
+     * - MitreLimit: float, default = 5.0     
      */
     buffer(distance: number, options?: Partial<BufferOptions>): Geom
 
@@ -49,44 +31,36 @@ interface Geom {
 
     /**
      * Simplifies a geometry using a given tolerance.
-     * @param tolerance 
      */
     simplify(tolerance: number): Geom
 
     /**
      * Returns the minimum distance between this Geometry and another Geometry.
-     * @param geom2 
      */
     distance(geom2: Geom): number
 
     /**
      * Compute the the nearest points of two geometries
-     * @param geom2 
      */
     nearestPoints(geom2: Geom): Geom[]
 
     /**
-     * For a point, find it's position on a line as length to the start
-     * @param point 
+     * For a point, find it's position on a line as length to the start 
      */
     lengthOnLine(line: Geom): number
 
     /**
-     * For a point, find it's position on a line as ratio
-     * @param point 
+     * For a point, find it's position on a line as ratio 
      */
     ratioOnLine(line: Geom): number
 
     /**
-     * For a lineString, return the point at a specified distance along the line
-     * @param point 
+     * For a lineString, return the point at a specified distance along the line 
      */
     along(distance: number): Geom
 
     /**
-     * For a lineString, return a sub string based on start and end distance.
-     * @param start 
-     * @param end 
+     * For a lineString, return a sub string based on start and end distance. 
      */
     extractLine(start: number, end: number): Geom
 
@@ -104,19 +78,16 @@ interface Geom {
 
     /**
      * Computes a Geometry representing the point-set which is contained in both this Geometry and the other Geometry.
-     * @param geom2 
      */
     union(geom2: Geom): Geom
 
     /**
      * Computes a Geometry representing the closure of the point-set of the points contained in this Geometry that are not contained in the other Geometry.
-     * @param geom2 
      */
     difference(geom2: Geom): Geom
 
     /**
      * Computes a Geometry representing the point-set which is common to both this Geometry and the other Geometry.
-     * @param geom2 
      */
     intersection(geom2: Geom): Geom
 
@@ -143,62 +114,53 @@ interface Geom {
 
     /**
      * Tests whether this geometry contains the argument geometry.
-     * @param geom2 
      */
     contains(geom2: Geom): boolean
 
     /**
-     * Tests whether this geometry overlaps the specified geometry.
-     * @param geom2 
+     * Tests whether this geometry overlaps the specified geometry. 
      */
     overlaps(geom2: Geom): boolean
 
     /**
      * Tests whether the distance from this Geometry to another is less than or equal to a specified value.
-     * @param geom2 
-     * @param distance 
      */
     isWithinDistance(geom2: Geom, distance: number): boolean
 
     /**
      * Densifies a geometry using a given distance tolerance
-     * @param distanceTolerance 
      */
     densify(distanceTolerance: number): Geom
 
     /**
      * For a closed lineString (ring), split by points
-     * @param points 
      */
     splitRing(points: Geom[]): Geom[]
 
     /**
     * For a lineString, split by points
-    * @param points 
     */
     splitLine(points: Geom[]): Geom[]
 
     /**
     * For a lineString, offset it by distance
-    * @param points 
     */
     offsetLine(offsetDistance: number): Geom
 
     /**
      * For a LineString, shorten or prolong it at the end.
-     * @param change 
      */
     extendLine(change: number): Geom
 
     /**
      * create a line to other geometry
-     * @param geom2 
      */
     lineTo(geom2: Geom): Geom
 }
 
 type geomType = 'Point' | 'LineString' | 'Polygon'
 
+const GeomCls = window['jts'].Geom
 
 /**
  * Create a GeoCalc Geom object 
@@ -238,22 +200,5 @@ function makePolygon(lines: Geom[], mitreLimit = 2) {
     return GeomCls.makePolygon(lines, mitreLimit) as Geom
 }
 
-/**
- * A Promise to notify that geocalc has been fully loaded. It is only a safe check. engine normally gets loaded within milliseconds
- */
-//not needed anymore
-function _load() {
-    return new Promise<void>(resolve => {
-        function check() {
-            if (GeomCls) {
-                resolve()
-            } else {
-                setTimeout(check, 10)
-            }
-        }
-        check()
-    })
-}
-
-export { toGeom, makePolygon, Geom }
-export type { BufferOptions }
+export { toGeom, makePolygon }
+export type { BufferOptions, Geom }
