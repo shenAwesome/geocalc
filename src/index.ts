@@ -164,10 +164,12 @@ const GeomCls = window['jts'].Geom
 
 /**
  * Create a GeoCalc Geom object 
- * @param jsonOrCoods GeoJSON (string or Object) or Coords (number[][])
+ * @param jsonOrCoods GeoJSON(string or Object), WKT or Coords (number[][])
  * @param type 'Point'|'LineString'|'Polygon', ignored when GeoJSON is given
  */
 function toGeom(jsonOrCoods: string | number[][] | number[] | any, type = null as geomType) {
+    const _$ = window['$'] //to keep global $, as GWT overwrites it somehow
+    let ret: Geom
     if (Array.isArray(jsonOrCoods)) {
         let coords = jsonOrCoods as number[][]
         if (!Array.isArray(coords[0])) coords = [coords as any]
@@ -180,13 +182,15 @@ function toGeom(jsonOrCoods: string | number[][] | number[] | any, type = null a
                 }
             }
         }
-        return GeomCls.create(type, coords) as Geom
+        ret = GeomCls.create(type, coords) as Geom
     } else {
         if (typeof jsonOrCoods !== 'string') {
             jsonOrCoods = JSON.stringify(jsonOrCoods)
         }
-        return new GeomCls(jsonOrCoods) as Geom
+        ret = GeomCls.create(jsonOrCoods) as Geom
     }
+    if (_$) window['$'] = _$
+    return ret
 }
 
 /**

@@ -1,4 +1,3 @@
-console.log(jts.Geom)
 
 function main() {
 
@@ -70,8 +69,12 @@ function main() {
   L.esri.basemapLayer('Topographic').addTo(map);
 
   function toGeom(jsonObj) {
-    return new jts.Geom(JSON.stringify(jsonObj))
+    return jts.Geom.create(JSON.stringify(jsonObj))
   }
+
+  const point1 = jts.Geom.create('POINT(144.95588779449463 -37.81583579787026)')
+  console.log( point1.error())
+  Object.assign(window,{point1})
 
   proj(GeoJSON1)
 
@@ -166,8 +169,8 @@ function main() {
     addGeom(polygon)
 
     addGeom(line0, '#ff7800')
-    addGeom(line1, '#ff7800')
-    addGeom(line2, '#ff7800')
+    addGeom(line1, '#007800')
+    addGeom(line2, '#ff0000')
 
   }
 
