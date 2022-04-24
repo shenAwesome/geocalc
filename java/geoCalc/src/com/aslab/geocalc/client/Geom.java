@@ -149,6 +149,7 @@ public class Geom implements Exportable {
     public String toJSON() {
         GeoJsonWriter writer = new GeoJsonWriter(4);
         writer.setEncodeCRS(false);
+        writer.setForceCCW(true);
         return writer.write(geom);
     }
 
