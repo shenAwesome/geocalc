@@ -1,4 +1,8 @@
+.git
 java
 src
 docs
-.git
+test
+publish.bat
+tsconfig.json
+typedoc.json
