@@ -85,8 +85,8 @@ public class SimpleLinker extends AbstractLinker {
                 "var $doc = { compatMode:'CSS1Compat'};",
                 "var $moduleName = null;",
                 "var $moduleBase = null;",
-                "$wnd.Error = $wnd.Error||{}",
-                "navigator.userAgent = navigator.userAgent||'AppleWebKit/537.36'");
+                "$wnd.Error = $wnd.Error||{}");
+        //"navigator.userAgent = navigator.userAgent||'AppleWebKit/537.36'");
         for ( String line: lines) {
             out.print(line);
             out.newline();
