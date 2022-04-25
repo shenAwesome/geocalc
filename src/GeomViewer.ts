@@ -159,6 +159,7 @@ class SvgStyle {
     fill = 'green'
     pointRadius = 8
     id = ''
+    className = ''
 
     static create(option: Partial<SvgStyle>) {
         return Object.assign(new SvgStyle, option)
@@ -183,8 +184,8 @@ const styles = {
 }
 
 
-function jsonToSVGStr(json: GeoJsonObject, className: string, style: SvgStyle) {
-    const { type } = json
+function jsonToSVGStr(json: GeoJsonObject, style: SvgStyle) {
+    const { type } = json, { className } = style
     let svg = ""
 
     if (type == 'Point') {
@@ -231,7 +232,7 @@ function jsonToSVGStr(json: GeoJsonObject, className: string, style: SvgStyle) {
     }
     if (type == 'GeometryCollection') {
         svg = (json as GeometryCollection).geometries.map(g => {
-            return jsonToSVGStr(g, className, style)
+            return jsonToSVGStr(g, style)
         }).join(' ')
     }
 
@@ -309,8 +310,9 @@ function toSVG(geoms: Geom[] | Feature[], option?: Partial<typeof svgOptions>) {
         const colorKey = geom.type().includes('String') ? 'stroke' : 'fill'
         style[colorKey] = rainbow(geoms.length, i)
         style.id = feature.id
+        style.className = className
         if (opt.styler) opt.styler(style, feature.properties, feature)
-        return jsonToSVGStr(json, className, style)
+        return jsonToSVGStr(json, style)
     }).join('\n')
 
     const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg')

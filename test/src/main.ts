@@ -1,4 +1,4 @@
-import { GeomViewer } from './GeomViewer'
+import { GeomViewer } from "@aslab/geocalc"
 import './style.css'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
