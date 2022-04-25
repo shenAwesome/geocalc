@@ -183,6 +183,16 @@ const styles = {
     }
 }
 
+function removeDuplicate(position: Position[]) {
+    const ret = [] as Position[]
+    position.forEach(p => {
+        const last = ret[ret.length - 1]
+        const skip = last && last[0] == p[0] && last[1] == p[1]
+        if (!skip) ret.push(p)
+    })
+    return ret
+}
+
 
 function jsonToSVGStr(json: GeoJsonObject, style: SvgStyle) {
     const { type } = json, { className } = style
@@ -193,12 +203,12 @@ function jsonToSVGStr(json: GeoJsonObject, style: SvgStyle) {
         svg = `<circle cx="${x}" cy="${y}" r="${style.pointRadius}" ${style.html} class='${className}'/>`
     }
     if (type == 'LineString') {
-        const pathStr = (json as LineString).coordinates.map(c => c[0] + ',' + c[1]).join(' ')
+        const pathStr = removeDuplicate((json as LineString).coordinates).map(c => c[0] + ',' + c[1]).join(' ')
         svg = `<polyline points="${pathStr}" ${style.html} class='${className}'/>`
     }
     if (type == 'Polygon') {
         const pathStr = (json as Polygon).coordinates.map((ring) => {
-            return ring.map((p, i) => {
+            return removeDuplicate(ring).map((p, i) => {
                 let command = 'L'
                 if (i == 0) command = 'M'
                 return `${command} ${p[0]} ${p[1]}`
@@ -214,6 +224,7 @@ function jsonToSVGStr(json: GeoJsonObject, style: SvgStyle) {
     }
     if (type == 'MultiLineString') {
         svg = (json as MultiLineString).coordinates.map(line => {
+            line = removeDuplicate(line)
             const pathStr = line.map(c => c[0] + ',' + c[1]).join(' ')
             return `<polyline points="${pathStr}"  ${style.html}  class='${className}'/>`
         }).join(' ')
@@ -221,6 +232,7 @@ function jsonToSVGStr(json: GeoJsonObject, style: SvgStyle) {
     if (type == 'MultiPolygon') {
         svg = (json as MultiPolygon).coordinates.map(polygon => {
             const pathStr = polygon.map((ring) => {
+                ring = removeDuplicate(ring)
                 return ring.map((p, i) => {
                     let command = 'L'
                     if (i == 0) command = 'M'

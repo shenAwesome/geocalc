@@ -158,11 +158,14 @@ class SvgStyle {
     strokeWidth = 1
     fill = 'green'
     pointRadius = 8
+    id = ''
+    className = ''
+
     static create(option: Partial<SvgStyle>) {
         return Object.assign(new SvgStyle, option)
     }
     get html() {
-        return `fill="${this.fill}" stroke="${this.stroke}" stroke-width="${this.strokeWidth}"`
+        return `x-id="${this.id}" fill="${this.fill}" stroke="${this.stroke}" stroke-width="${this.strokeWidth}"`
     }
 }
 
@@ -180,9 +183,19 @@ const styles = {
     }
 }
 
+function removeDuplicate(position: Position[]) {
+    const ret = [] as Position[]
+    position.forEach(p => {
+        const last = ret[ret.length - 1]
+        const skip = last && last[0] == p[0] && last[1] == p[1]
+        if (!skip) ret.push(p)
+    })
+    return ret
+}
 
-function jsonToSVGStr(json: GeoJsonObject, className: string, style: SvgStyle) {
-    const { type } = json
+
+function jsonToSVGStr(json: GeoJsonObject, style: SvgStyle) {
+    const { type } = json, { className } = style
     let svg = ""
 
     if (type == 'Point') {
@@ -190,12 +203,12 @@ function jsonToSVGStr(json: GeoJsonObject, className: string, style: SvgStyle) {
         svg = `<circle cx="${x}" cy="${y}" r="${style.pointRadius}" ${style.html} class='${className}'/>`
     }
     if (type == 'LineString') {
-        const pathStr = (json as LineString).coordinates.map(c => c[0] + ',' + c[1]).join(' ')
+        const pathStr = removeDuplicate((json as LineString).coordinates).map(c => c[0] + ',' + c[1]).join(' ')
         svg = `<polyline points="${pathStr}" ${style.html} class='${className}'/>`
     }
     if (type == 'Polygon') {
         const pathStr = (json as Polygon).coordinates.map((ring) => {
-            return ring.map((p, i) => {
+            return removeDuplicate(ring).map((p, i) => {
                 let command = 'L'
                 if (i == 0) command = 'M'
                 return `${command} ${p[0]} ${p[1]}`
@@ -211,6 +224,7 @@ function jsonToSVGStr(json: GeoJsonObject, className: string, style: SvgStyle) {
     }
     if (type == 'MultiLineString') {
         svg = (json as MultiLineString).coordinates.map(line => {
+            line = removeDuplicate(line)
             const pathStr = line.map(c => c[0] + ',' + c[1]).join(' ')
             return `<polyline points="${pathStr}"  ${style.html}  class='${className}'/>`
         }).join(' ')
@@ -218,6 +232,7 @@ function jsonToSVGStr(json: GeoJsonObject, className: string, style: SvgStyle) {
     if (type == 'MultiPolygon') {
         svg = (json as MultiPolygon).coordinates.map(polygon => {
             const pathStr = polygon.map((ring) => {
+                ring = removeDuplicate(ring)
                 return ring.map((p, i) => {
                     let command = 'L'
                     if (i == 0) command = 'M'
@@ -229,7 +244,7 @@ function jsonToSVGStr(json: GeoJsonObject, className: string, style: SvgStyle) {
     }
     if (type == 'GeometryCollection') {
         svg = (json as GeometryCollection).geometries.map(g => {
-            return jsonToSVGStr(g, className, style)
+            return jsonToSVGStr(g, style)
         }).join(' ')
     }
 
@@ -306,8 +321,10 @@ function toSVG(geoms: Geom[] | Feature[], option?: Partial<typeof svgOptions>) {
             style = styles.getStyle(geom)
         const colorKey = geom.type().includes('String') ? 'stroke' : 'fill'
         style[colorKey] = rainbow(geoms.length, i)
+        style.id = feature.id
+        style.className = className
         if (opt.styler) opt.styler(style, feature.properties, feature)
-        return jsonToSVGStr(json, className, style)
+        return jsonToSVGStr(json, style)
     }).join('\n')
 
     const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg')
@@ -521,12 +538,13 @@ class GeomViewer {
         return this.features[this.features.length - 1]?.geometry
     }
 
-    async addFromURL(url: string, projectToWebMercator = true, idField?: string) {
+    async addFromURL(url: string, projectToWebMercator = true, idGenerator?: IdGenerator) {
         const json = await (await fetch(url)).json() as FeatureCollection
         let features = json.features.map(f => Feature.fromJSON(f))
         if (projectToWebMercator) features = features.map(f => f.toWebmercator())
-        if (idField) features.forEach(f => f.id = f.properties[idField])
-
+        if (idGenerator) features.forEach(f => {
+            f.id = (typeof idGenerator === 'string') ? f.properties[idGenerator] : idGenerator(f)
+        })
         features.forEach(f => this.add(f))
         return features
     }
@@ -535,6 +553,8 @@ class GeomViewer {
         return toGeom(jsonOrCoods, type)
     }
 }
+
+type IdGenerator = string | ((f: Feature) => string)
 
 type geomType = 'Point' | 'LineString' | 'Polygon'
 
