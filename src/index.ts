@@ -156,6 +156,22 @@ interface Geom {
      * create a line to other geometry
      */
     lineTo(geom2: Geom): Geom
+
+
+    /**
+    * split polygon by a line
+    */
+    splitByLine(line: Geom): Geom
+
+    /**
+     * clone a geom
+     */
+    clone(): Geom
+
+    /**
+    * offset a geom
+    */
+    offset(x: number, double: number): Geom
 }
 
 type geomType = 'Point' | 'LineString' | 'Polygon'
@@ -185,7 +201,11 @@ function toGeom(jsonOrCoods: string | number[][] | number[] | any, type = null a
         ret = GeomCls.create(type, coords) as Geom
     } else {
         if (typeof jsonOrCoods !== 'string') {
-            jsonOrCoods = JSON.stringify(jsonOrCoods)
+            if (jsonOrCoods['toJSON']) {
+                jsonOrCoods = jsonOrCoods['toJSON']()
+            } else {
+                jsonOrCoods = JSON.stringify(jsonOrCoods)
+            }
         }
         ret = GeomCls.create(jsonOrCoods) as Geom
     }
