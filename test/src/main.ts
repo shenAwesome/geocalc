@@ -1,5 +1,6 @@
-import { GeomViewer } from "@aslab/geocalc"
+import { GeomViewer } from "./GeomViewer"
 import './style.css'
+import { arcgisToGeoJSON, geojsonToArcGIS } from '../lib/geoJsonUtil'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 
@@ -11,6 +12,8 @@ app.innerHTML = `
   const { add, get } = new GeomViewer(app)
   add([30.0, 10.0], 'point1')
   add(get('point1').buffer(100))
+  const simplified = get('point1').buffer(100).simplify(10)
+  add(simplified)
 }
 
 {
@@ -55,12 +58,28 @@ app.innerHTML = `
 }
 
 {
-  const { addFromURL } = new GeomViewer(app, {
+  const { fromURL } = new GeomViewer(app, {
     width: 1028, height: 500, zoomRatio: .7,
     styler: (style, props) => {
       if (props['name'] == "Australia") style.fill = 'red'
     }
   })
-  addFromURL('./world.txt', true, 'name')
+  fromURL('./world.txt', true, 'name')
+}
+
+
+{
+  const { fromEsri, add } = new GeomViewer(app, {
+    styler: (style, props) => {
+      style.label = props['ADD_EZI_ADDRESS']
+    }
+  })
+  const propLayer = 'https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/VicPlan_PropertyAndParcel_Label_Opt/MapServer/3'
+  fromEsri(propLayer, `PROP_PFI = '1390767'`).then(f => {
+    const simplified = f[0].geometry.simplify(10)
+    console.log(simplified.toJSON())
+    // add(simplified)
+  })
+
 }
 

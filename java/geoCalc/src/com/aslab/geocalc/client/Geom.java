@@ -82,7 +82,7 @@ public class Geom implements Exportable {
     public static Geom create(String type, Coord[] pts) {
         Geometry geom = null;
         String error = "";
-        try{
+        try {
             List<Coordinate> coordList = new ArrayList<>();
             for (Coord pt : pts) coordList.add(new Coordinate(pt.getX(), pt.getY()));
             Coordinate[] coords = coordList.toArray(new Coordinate[0]);
@@ -90,10 +90,10 @@ public class Geom implements Exportable {
             if (type.equalsIgnoreCase("Point")) geom = factory.createPoint(coords[0]);
             if (type.equalsIgnoreCase("LineString")) geom = factory.createLineString(coords);
             if (type.equalsIgnoreCase("Polygon")) geom = factory.createPolygon(coords);
-        }catch (Exception e) {
+        } catch (Exception e) {
             error = e.toString();
         }
-        return create(geom,error);
+        return create(geom, error);
     }
 
     public static Geom create(String jsonOrWKT) {
@@ -109,10 +109,10 @@ public class Geom implements Exportable {
         } catch (Exception e) {
             error = e.toString();
         }
-        return create(geom,error);
+        return create(geom, error);
     }
 
-    private static Geom create(Geometry geom,String error) {
+    private static Geom create(Geometry geom, String error) {
         Geom g = new Geom();
         g.geom = geom;
         g.error = error;
@@ -120,12 +120,13 @@ public class Geom implements Exportable {
     }
 
     private static Geom create(Geometry geom) {
-        return create(geom,"");
+        return create(geom, "");
     }
 
     public Geometry geom;
 
-    private Geom() {}
+    private Geom() {
+    }
 
     public String error = "";
 
@@ -149,8 +150,15 @@ public class Geom implements Exportable {
     public String toJSON() {
         GeoJsonWriter writer = new GeoJsonWriter(4);
         writer.setEncodeCRS(false);
-        writer.setForceCCW(true);
-        return writer.write(geom);
+        String ret = "";
+        try {
+            writer.setForceCCW(true);
+            ret = writer.write(geom);
+        } catch (Exception e) {
+            writer.setForceCCW(false);
+            ret = writer.write(geom);
+        }
+        return ret;
     }
 
     public double[] coordinate() {

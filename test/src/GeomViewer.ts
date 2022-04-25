@@ -1,4 +1,6 @@
 import { Geom, toGeom } from "@aslab/geocalc"
+import { arcgisToGeoJSON, geojsonToArcGIS } from '../lib/geoJsonUtil'
+
 import {
     Feature as GeoFeature,
     FeatureCollection,
@@ -160,6 +162,7 @@ class SvgStyle {
     pointRadius = 8
     id = ''
     className = ''
+    label = ''
 
     static create(option: Partial<SvgStyle>) {
         return Object.assign(new SvgStyle, option)
@@ -323,8 +326,18 @@ function toSVG(geoms: Geom[] | Feature[], option?: Partial<typeof svgOptions>) {
         style[colorKey] = rainbow(geoms.length, i)
         style.id = feature.id
         style.className = className
+        style.label = ''
         if (opt.styler) opt.styler(style, feature.properties, feature)
-        return jsonToSVGStr(json, style)
+        let shape = jsonToSVGStr(json, style)
+        //label
+        if (style.label) {
+            const { centre } = Extent.getExtent(target)
+            const labelSVG = ` <text x="${centre.x}" y="${centre.y}" 
+                class="${style.className}" dominant-baseline="middle" text-anchor="middle"
+                x-id='${style.id}'>${style.label}</text>`
+            shape += labelSVG
+        }
+        return shape
     }).join('\n')
 
     const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg')
@@ -489,7 +502,8 @@ class GeomViewer {
         this.add = this.add.bind(this)
         this.get = this.get.bind(this)
         this.last = this.last.bind(this)
-        this.addFromURL = this.addFromURL.bind(this)
+        this.fromURL = this.fromURL.bind(this)
+        this.fromEsri = this.fromEsri.bind(this)
     }
 
     appendTo(container: HTMLElement) {
@@ -538,13 +552,28 @@ class GeomViewer {
         return this.features[this.features.length - 1]?.geometry
     }
 
-    async addFromURL(url: string, projectToWebMercator = true, idGenerator?: IdGenerator) {
+    async fromURL(url: string, projectToWebMercator = true, idGenerator?: IdGenerator) {
         const json = await (await fetch(url)).json() as FeatureCollection
         let features = json.features.map(f => Feature.fromJSON(f))
         if (projectToWebMercator) features = features.map(f => f.toWebmercator())
         if (idGenerator) features.forEach(f => {
             f.id = (typeof idGenerator === 'string') ? f.properties[idGenerator] : idGenerator(f)
         })
+        features.forEach(f => this.add(f))
+        return features
+    }
+
+    async fromEsri(server: string, where: string) {
+        var url = new URL(server + '/query')
+        url.search = new URLSearchParams({
+            f: 'json', returnGeometry: 'true',
+            outFields: '*', outSR: '3857', where
+        }) as any
+        const esriJSON = await (await fetch(url.toString())).json() as any
+        const keyField = (esriJSON.fields as any[]).find(f => f.type == 'esriFieldTypeOID').name as string
+        const geoJSON = arcgisToGeoJSON(esriJSON) as FeatureCollection
+        const features = geoJSON.features.map(f => Feature.fromJSON(f))
+        features.forEach(f => f.id = f.properties[keyField])
         features.forEach(f => this.add(f))
         return features
     }
