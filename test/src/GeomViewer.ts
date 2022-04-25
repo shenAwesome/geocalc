@@ -301,15 +301,11 @@ function toSVG(geoms: Geom[] | Feature[], option?: Partial<typeof svgOptions>) {
             y = svgCenter.y + (y - centre.y) / ratio
             return [Math.round(x), opt.height - Math.round(y)]
         })
-        const className = geom.type() + ' ' + 'shape' + i,
-            json = JSON.parse(target.toJSON()) as GeoJsonObject
-        let style = styles.getStyle(geom)
-        const color = rainbow(geoms.length, i)
-        if (geom.type().includes('String')) {
-            style.stroke = color
-        } else {
-            style.fill = color
-        }
+        const className = geom.type() + ' ' + feature.id,
+            json = JSON.parse(target.toJSON()) as GeoJsonObject,
+            style = styles.getStyle(geom)
+        const colorKey = geom.type().includes('String') ? 'stroke' : 'fill'
+        style[colorKey] = rainbow(geoms.length, i)
         if (opt.styler) opt.styler(style, feature.properties, feature)
         return jsonToSVGStr(json, className, style)
     }).join('\n')
@@ -446,11 +442,11 @@ class Feature {
     }
 
     set id(val: string) {
-        this.properties['_id_'] = val
+        this.properties['id'] = val
     }
 
     get id() {
-        return this.properties['_id_']
+        return this.properties['id']
     }
 }
 
@@ -471,6 +467,7 @@ class GeomViewer {
         this.element.style.display = 'inline-block'
         if (container) container.appendChild(this.element)
         if (options) this.option = { ...this.option, ...options }
+        this.render()
         this.render = debounce(this.render)
         this.add = this.add.bind(this)
         this.get = this.get.bind(this)
@@ -524,10 +521,12 @@ class GeomViewer {
         return this.features[this.features.length - 1]?.geometry
     }
 
-    async addFromURL(url: string, projectToWebMercator = true) {
+    async addFromURL(url: string, projectToWebMercator = true, idField?: string) {
         const json = await (await fetch(url)).json() as FeatureCollection
         let features = json.features.map(f => Feature.fromJSON(f))
         if (projectToWebMercator) features = features.map(f => f.toWebmercator())
+        if (idField) features.forEach(f => f.id = f.properties[idField])
+
         features.forEach(f => this.add(f))
         return features
     }

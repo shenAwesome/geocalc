@@ -158,11 +158,13 @@ class SvgStyle {
     strokeWidth = 1
     fill = 'green'
     pointRadius = 8
+    id = ''
+
     static create(option: Partial<SvgStyle>) {
         return Object.assign(new SvgStyle, option)
     }
     get html() {
-        return `fill="${this.fill}" stroke="${this.stroke}" stroke-width="${this.strokeWidth}"`
+        return `x-id="${this.id}" fill="${this.fill}" stroke="${this.stroke}" stroke-width="${this.strokeWidth}"`
     }
 }
 
@@ -306,6 +308,7 @@ function toSVG(geoms: Geom[] | Feature[], option?: Partial<typeof svgOptions>) {
             style = styles.getStyle(geom)
         const colorKey = geom.type().includes('String') ? 'stroke' : 'fill'
         style[colorKey] = rainbow(geoms.length, i)
+        style.id = feature.id
         if (opt.styler) opt.styler(style, feature.properties, feature)
         return jsonToSVGStr(json, className, style)
     }).join('\n')
@@ -525,7 +528,7 @@ class GeomViewer {
         const json = await (await fetch(url)).json() as FeatureCollection
         let features = json.features.map(f => Feature.fromJSON(f))
         if (projectToWebMercator) features = features.map(f => f.toWebmercator())
-        if (idField) features.forEach(f => f.id == f.properties[idField])
+        if (idField) features.forEach(f => f.id = f.properties[idField])
         features.forEach(f => this.add(f))
         return features
     }

@@ -1,4 +1,4 @@
-import { GeomViewer } from '@aslab/geocalc'
+import { GeomViewer } from './GeomViewer'
 import './style.css'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
@@ -58,9 +58,10 @@ app.innerHTML = `
   const { addFromURL } = new GeomViewer(app, {
     width: 1028, height: 500, zoomRatio: .7,
     styler: (style, props) => {
+      console.log(props)
       if (props['name'] == "Australia") style.fill = 'red'
     }
   })
-  addFromURL('./world.txt')
+  addFromURL('./world.txt', true, 'name')
 }
 
