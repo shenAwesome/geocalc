@@ -58,7 +58,6 @@ app.innerHTML = `
   const { addFromURL } = new GeomViewer(app, {
     width: 1028, height: 500, zoomRatio: .7,
     styler: (style, props) => {
-      console.log(props)
       if (props['name'] == "Australia") style.fill = 'red'
     }
   })

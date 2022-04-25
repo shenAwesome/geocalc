@@ -526,11 +526,13 @@ class GeomViewer {
         return this.features[this.features.length - 1]?.geometry
     }
 
-    async addFromURL(url: string, projectToWebMercator = true, idField?: string) {
+    async addFromURL(url: string, projectToWebMercator = true, idGenerator?: IdGenerator) {
         const json = await (await fetch(url)).json() as FeatureCollection
         let features = json.features.map(f => Feature.fromJSON(f))
         if (projectToWebMercator) features = features.map(f => f.toWebmercator())
-        if (idField) features.forEach(f => f.id = f.properties[idField])
+        if (idGenerator) features.forEach(f => {
+            f.id = (typeof idGenerator === 'string') ? f.properties[idGenerator] : idGenerator(f)
+        })
         features.forEach(f => this.add(f))
         return features
     }
@@ -539,6 +541,8 @@ class GeomViewer {
         return toGeom(jsonOrCoods, type)
     }
 }
+
+type IdGenerator = string | ((f: Feature) => string)
 
 type geomType = 'Point' | 'LineString' | 'Polygon'
 
