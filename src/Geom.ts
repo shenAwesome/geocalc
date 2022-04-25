@@ -172,6 +172,17 @@ interface Geom {
     * offset a geom
     */
     offset(x: number, double: number): Geom
+
+    /**
+     * Tests whether this Geometry is topologically valid
+     */
+    isValid(): boolean
+
+    /**
+     * extract lines from geom
+     */
+    getLines(): Geom[]
+
 }
 
 type geomType = 'Point' | 'LineString' | 'Polygon'

@@ -76,9 +76,8 @@ app.innerHTML = `
   })
   const propLayer = 'https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/VicPlan_PropertyAndParcel_Label_Opt/MapServer/3'
   fromEsri(propLayer, `PROP_PFI = '1390767'`).then(f => {
-    const simplified = f[0].geometry.simplify(10)
-    console.log(simplified.toJSON())
-    // add(simplified)
+    const simplified = f[0].geometry.buffer(1).simplify(.5).toJSON()
+    add(simplified)
   })
 
 }

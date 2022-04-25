@@ -7,12 +7,9 @@ import java.util.Collections;
 import java.util.List;
 
 import org.locationtech.jts.densify.Densifier;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.LineSegment;
-import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.*;
 import org.locationtech.jts.geom.util.LineStringExtracter;
+import org.locationtech.jts.geom.util.LinearComponentExtracter;
 import org.locationtech.jts.io.geojson.GeoJsonReader;
 import org.locationtech.jts.io.geojson.GeoJsonWriter;
 import org.locationtech.jts.io.WKTReader;
@@ -26,7 +23,6 @@ import org.timepedia.exporter.client.Export;
 import org.timepedia.exporter.client.ExportPackage;
 import org.timepedia.exporter.client.Exportable;
 import com.google.gwt.core.client.JavaScriptObject;
-
 
 class Coord extends JavaScriptObject {
     protected Coord() {
@@ -435,6 +431,17 @@ public class Geom implements Exportable {
         }
         return newGeom;
     }
+
+    public boolean isValid() {
+        return geom.isValid();
+    }
+
+    public Geom[] getLines(){
+        List<Geom> ret = new ArrayList<>();
+        List<Geometry> lines = LinearComponentExtracter.getLines(geom);
+        lines.forEach(l-> ret.add(create(l)));
+        return ret.toArray(new Geom[0]);
+    }  
 
     public static Geom makePolygon(Geom[] lines, double mitreLimit) {
         // iterate through lines, modify segments to make them 'link'

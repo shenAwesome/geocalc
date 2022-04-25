@@ -478,6 +478,18 @@ class Feature {
     get id() {
         return this.properties['id']
     }
+
+    get geomJSON() {
+        return JSON.parse(this.geometry.toJSON()) as Geometry
+    }
+
+    get geoJSON() {
+        return {
+            type: 'Feature',
+            geometry: this.geomJSON,
+            properties: this.properties
+        } as GeoFeature
+    }
 }
 
 interface GeoGeometry {
