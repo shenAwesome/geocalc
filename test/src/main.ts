@@ -1,5 +1,6 @@
 import { LineString } from "geojson"
-import { GeomViewer } from "./../../src/GeomViewer"
+//import { GeomViewer } from "./../../src/GeomViewer"
+import { GeomViewer } from "@aslab/geocalc"
 import './style.css'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
