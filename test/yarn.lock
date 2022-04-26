@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@aslab/geocalc@^1.0.53":
-  version "1.0.53"
-  resolved "https://registry.yarnpkg.com/@aslab/geocalc/-/geocalc-1.0.53.tgz#652f7814d78db67845baa6c4c0c1e6500acb5a9d"
-  integrity sha512-hsz5VzlGS+nhIYdesQdGXrbU5AElZRs9xBR6w7GmGkuHNfS/7cfZ6+1Tza3/X+Qvf2ev84dy6KESmra+HmdA7A==
+"@aslab/geocalc@^1.0.54":
+  version "1.0.54"
+  resolved "https://registry.yarnpkg.com/@aslab/geocalc/-/geocalc-1.0.54.tgz#6cca5649ed7fdff28c74c608e198406d1bf5c6d4"
+  integrity sha512-S3HlVP65O4nxZLeY8eQh0Y0rttCc1M4vgCU0mUHVcJWNeyf6iNR/GtYM4UD16VEplXuCxCXb+BvBVhC9yCVlBw==
 
 "@types/geojson@^7946.0.8":
   version "7946.0.8"

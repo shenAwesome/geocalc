@@ -1,6 +1,6 @@
-import { GeomViewer } from "./GeomViewer"
+import { LineString } from "geojson"
+import { GeomViewer } from "./../../src/GeomViewer"
 import './style.css'
-import { arcgisToGeoJSON, geojsonToArcGIS } from '../lib/geoJsonUtil'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 
@@ -68,17 +68,19 @@ app.innerHTML = `
 }
 
 
-{
-  const { fromEsri, add } = new GeomViewer(app, {
+(async () => {
+  const { fromEsri, last } = new GeomViewer(app, {
     styler: (style, props) => {
       style.label = props['ADD_EZI_ADDRESS']
     }
   })
   const propLayer = 'https://plan-gis.mapshare.vic.gov.au/arcgis/rest/services/Planning/VicPlan_PropertyAndParcel_Label_Opt/MapServer/3'
-  fromEsri(propLayer, `PROP_PFI = '1390767'`).then(f => {
-    const simplified = f[0].geometry.buffer(1).simplify(.5).toJSON()
-    add(simplified)
+  await fromEsri(propLayer, `PROP_PFI = '1390767'`, 3111)
+  console.log(last().area())
+  const lines = last().getLines()
+  lines.map(l => {
+    const ls = JSON.parse(l.toJSON()) as LineString
+    console.log(ls.coordinates.length, ls.coordinates)
   })
-
-}
+})()
 

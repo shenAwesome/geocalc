@@ -12,7 +12,7 @@
     "vite": "^2.9.5"
   },
   "dependencies": {
-    "@aslab/geocalc": "^1.0.53",
+    "@aslab/geocalc": "^1.0.54",
     "@types/geojson": "^7946.0.8"
   }
 }

@@ -441,7 +441,7 @@ public class Geom implements Exportable {
         List<Geometry> lines = LinearComponentExtracter.getLines(geom);
         lines.forEach(l-> ret.add(create(l)));
         return ret.toArray(new Geom[0]);
-    }  
+    }
 
     public static Geom makePolygon(Geom[] lines, double mitreLimit) {
         // iterate through lines, modify segments to make them 'link'
