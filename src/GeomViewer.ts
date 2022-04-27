@@ -374,19 +374,6 @@ const geomTool = {
 }
 
 class Extent {
-
-    constructor(public minX: number, public maxX: number,
-        public minY: number, public maxY: number) { }
-
-    union(extent: Extent) {
-        if (!extent) return this
-        const minX = Math.min(this.minX, extent.minX),
-            maxX = Math.max(this.maxX, extent.maxX),
-            minY = Math.min(this.minY, extent.minY),
-            maxY = Math.max(this.maxY, extent.maxY)
-        return new Extent(minX, maxX, minY, maxY)
-    }
-
     static getExtent(geom: Geom | Geom[]): Extent {
         if (Array.isArray(geom)) {
             return geom.reduce((ext, geom) => {
@@ -408,15 +395,18 @@ class Extent {
         return { x, y }
     }
 
-    get width() {
-        return (this.maxX - this.minX)
-    }
-
     get height() {
         return (this.maxY - this.minY)
     }
 
-    expand(ratio: number) {
+    get width() {
+        return (this.maxX - this.minX)
+    }
+
+    constructor(public minX: number, public maxX: number,
+        public minY: number, public maxY: number) { }
+
+    private expand(ratio: number) {
         const { centre, width, height } = this
         const newWidth = width * ratio,
             newHeight = height * ratio
@@ -427,7 +417,7 @@ class Extent {
         return new Extent(minX, maxX, minY, maxY)
     }
 
-    pad(padding: number, yPadding = padding) {
+    private pad(padding: number, yPadding = padding) {
         const { centre, width, height } = this
         const newWidth = width + padding * 2,
             newHeight = height + yPadding * 2
@@ -437,12 +427,18 @@ class Extent {
             maxY = centre.y + newHeight / 2
         return new Extent(minX, maxX, minY, maxY)
     }
+
+    private union(extent: Extent) {
+        if (!extent) return this
+        const minX = Math.min(this.minX, extent.minX),
+            maxX = Math.max(this.maxX, extent.maxX),
+            minY = Math.min(this.minY, extent.minY),
+            maxY = Math.max(this.maxY, extent.maxY)
+        return new Extent(minX, maxX, minY, maxY)
+    }
 }
 
 class Feature {
-    constructor(public geometry: Geom, public properties = {} as { [key: string]: any }) {
-    }
-
     static fromJSON(json: GeoFeature | Geometry, name = '') {
         let target = json as GeoFeature
         if (!json.type.includes('Feature')) {
@@ -458,28 +454,8 @@ class Feature {
         return new Feature(toGeom(target.geometry), props)
     }
 
-    toWebmercator() {
-        const geom = transform(this.geometry, p => {
-            const { x, y } = Conv.ll2m(p[0], p[1])
-            return [x, y]
-        })
-        return new Feature(geom, this.properties)
-    }
-
     get extent() {
         return Extent.getExtent(this.geometry)
-    }
-
-    set id(val: string) {
-        this.properties['id'] = val
-    }
-
-    get id() {
-        return this.properties['id']
-    }
-
-    get geomJSON() {
-        return JSON.parse(this.geometry.toJSON()) as Geometry
     }
 
     get geoJSON() {
@@ -488,6 +464,29 @@ class Feature {
             geometry: this.geomJSON,
             properties: this.properties
         } as GeoFeature
+    }
+
+    get geomJSON() {
+        return JSON.parse(this.geometry.toJSON()) as Geometry
+    }
+
+    get id() {
+        return this.properties['id']
+    }
+
+    constructor(public geometry: Geom, public properties = {} as { [key: string]: any }) {
+    }
+
+    toWebmercator() {
+        const geom = transform(this.geometry, p => {
+            const { x, y } = Conv.ll2m(p[0], p[1])
+            return [x, y]
+        })
+        return new Feature(geom, this.properties)
+    }
+
+    set id(val: string) {
+        this.properties['id'] = val
     }
 }
 
@@ -499,9 +498,9 @@ interface GeoGeometry {
 type geomSource = string | GeoFeature | GeoGeometry | number[] | number[][] | Feature | Geom
 
 class GeomViewer {
-    features = [] as Feature[]
-    option = { ...svgOptions }
-    element = document.createElement('div')
+    private element = document.createElement('div')
+    private features = [] as Feature[]
+    private option = { ...svgOptions }
 
     constructor(container?: HTMLElement, options?: Partial<typeof svgOptions>) {
         this.element.classList.add('GeomViewer')
@@ -517,27 +516,7 @@ class GeomViewer {
         this.fromEsri = this.fromEsri.bind(this)
     }
 
-    appendTo(container: HTMLElement) {
-        container.appendChild(this.element)
-    }
-
-    private render() {
-        const { element, features, option } = this
-        element.innerHTML = ''
-        element.style.width = option.width + 'px'
-        element.style.height = option.height + 'px'
-        features.forEach((f, i) => f.id = f.id || 'Feature_' + i)
-        if (features.length) {
-            element.appendChild(toSVG(features, option))
-        }
-    }
-
-    private addFeature(feature: Feature) {
-        this.features.push(feature)
-        this.render()
-    }
-
-    add(geomSrc: geomSource, id?: string) {
+    public add(geomSrc: geomSource, id?: string) {
         let feature = null as unknown as Feature
         if (geomSrc instanceof Feature) {
             feature = geomSrc
@@ -551,30 +530,43 @@ class GeomViewer {
         return feature.geometry
     }
 
-    getFeature(id: string) {
-        return this.features.find(f => f.id == id)
+    public addFeature(feature: Feature) {
+        this.features.push(feature)
+        this.render()
     }
 
-    get(id: string) {
+    public appendTo(container: HTMLElement) {
+        container.appendChild(this.element)
+    }
+
+    public get(id: string) {
         return this.getFeature(id)?.geometry as Geom
     }
 
-    last() {
+    public getFeature(id: string) {
+        return this.features.find(f => f.id == id)
+    }
+
+    public last() {
         return this.features[this.features.length - 1]?.geometry
     }
 
-    async fromURL(url: string, projectToWebMercator = true, idGenerator?: IdGenerator) {
-        const json = await (await fetch(url)).json() as FeatureCollection
-        let features = json.features.map(f => Feature.fromJSON(f))
-        if (projectToWebMercator) features = features.map(f => f.toWebmercator())
-        if (idGenerator) features.forEach(f => {
-            f.id = (typeof idGenerator === 'string') ? f.properties[idGenerator] : idGenerator(f)
-        })
-        features.forEach(f => this.add(f))
-        return features
+    private render() {
+        const { element, features, option } = this
+        element.innerHTML = ''
+        element.style.width = option.width + 'px'
+        element.style.height = option.height + 'px'
+        features.forEach((f, i) => f.id = f.id || 'Feature_' + i)
+        if (features.length) {
+            element.appendChild(toSVG(features, option))
+        }
     }
 
-    async fromEsri(server: string, where: string, SR = 3857) {
+    public toGeom(jsonOrCoods: string | number[][] | number[] | any, type?: geomType): Geom {
+        return toGeom(jsonOrCoods, type)
+    }
+
+    public async fromEsri(server: string, where: string, SR = 3857) {
         var url = new URL(server + '/query')
         url.search = new URLSearchParams({
             f: 'json', returnGeometry: 'true',
@@ -589,8 +581,15 @@ class GeomViewer {
         return features
     }
 
-    toGeom(jsonOrCoods: string | number[][] | number[] | any, type?: geomType): Geom {
-        return toGeom(jsonOrCoods, type)
+    public async fromURL(url: string, projectToWebMercator = true, idGenerator?: IdGenerator) {
+        const json = await (await fetch(url)).json() as FeatureCollection
+        let features = json.features.map(f => Feature.fromJSON(f))
+        if (projectToWebMercator) features = features.map(f => f.toWebmercator())
+        if (idGenerator) features.forEach(f => {
+            f.id = (typeof idGenerator === 'string') ? f.properties[idGenerator] : idGenerator(f)
+        })
+        features.forEach(f => this.add(f))
+        return features
     }
 }
 
