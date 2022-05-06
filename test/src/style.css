@@ -9,7 +9,14 @@
 
 .GeomViewer g:hover {
   stroke: black;
-  stroke-width: 2;
+  stroke-width: 1;
+  fill: cyan;
+}
+
+.GeomViewer g.LineString:hover {
+  stroke-width: 4;
+  stroke: cyan;
+  fill: none;
 }
 
 .GeomViewer text {

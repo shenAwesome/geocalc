@@ -292,8 +292,13 @@ function toSVG(geoms: Geom[] | Feature[], option?: Partial<typeof svgOptions>) {
     if (extent == 'First') extent = getExtent(features.slice(0, 1))
     if (extent == 'Last') extent = getExtent(features.slice(-1))
 
-    const width = Math.max(10, extent.width),
-        height = Math.max(10, extent.height),
+    const inRange = (num: number, min: number, max: number) => {
+        return num > min && num < max
+    }
+    const isLatLon = inRange(extent.width, 0, 200) && inRange(extent.height, 0, 200)
+    const minSize = isLatLon ? 0.0001 : 10
+    const width = Math.max(minSize, extent.width),
+        height = Math.max(minSize, extent.height),
         { centre } = extent
     const ratio = Math.max(width / opt.width, height / opt.height) * opt.zoomRatio,
         svgCenter = { x: opt.width / 2, y: opt.height / 2 }
@@ -406,7 +411,7 @@ class Extent {
     constructor(public minX: number, public maxX: number,
         public minY: number, public maxY: number) { }
 
-    private expand(ratio: number) {
+    public expand(ratio: number) {
         const { centre, width, height } = this
         const newWidth = width * ratio,
             newHeight = height * ratio
@@ -417,7 +422,7 @@ class Extent {
         return new Extent(minX, maxX, minY, maxY)
     }
 
-    private pad(padding: number, yPadding = padding) {
+    public pad(padding: number, yPadding = padding) {
         const { centre, width, height } = this
         const newWidth = width + padding * 2,
             newHeight = height + yPadding * 2
@@ -516,7 +521,7 @@ class GeomViewer {
         this.fromEsri = this.fromEsri.bind(this)
     }
 
-    public add(geomSrc: geomSource, id?: string) {
+    public add(geomSrc: geomSource, id?: string, projectToWebMercator = false) {
         let feature = null as unknown as Feature
         if (geomSrc instanceof Feature) {
             feature = geomSrc
@@ -526,6 +531,7 @@ class GeomViewer {
             feature = new Feature(toGeom(geomSrc))
         }
         if (id) feature.id = id
+        if (projectToWebMercator) feature = feature.toWebmercator()
         this.addFeature(feature)
         return feature.geometry
     }
@@ -582,8 +588,12 @@ class GeomViewer {
     }
 
     public async fromURL(url: string, projectToWebMercator = true, idGenerator?: IdGenerator) {
-        const json = await (await fetch(url)).json() as FeatureCollection
-        let features = json.features.map(f => Feature.fromJSON(f))
+        const _json = await (await fetch(url)).json()
+        let fc = null as FeatureCollection
+        if (_json.type == 'FeatureCollection') fc = _json
+        if (_json.type == 'Feature') fc = { features: [_json], type: 'FeatureCollection' }
+
+        let features = fc.features.map(f => Feature.fromJSON(f))
         if (projectToWebMercator) features = features.map(f => f.toWebmercator())
         if (idGenerator) features.forEach(f => {
             f.id = (typeof idGenerator === 'string') ? f.properties[idGenerator] : idGenerator(f)

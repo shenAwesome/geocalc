@@ -1,6 +1,6 @@
 import { LineString } from "geojson"
-//import { GeomViewer } from "./../../src/GeomViewer"
-import { GeomViewer } from "@aslab/geocalc"
+import { GeomViewer } from "./../../src/GeomViewer"
+//import { GeomViewer } from "@aslab/geocalc"
 import './style.css'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
@@ -66,6 +66,13 @@ app.innerHTML = `
     }
   })
   fromURL('./world.txt', true, 'name')
+}
+
+{
+  const { fromURL } = new GeomViewer(app, {
+
+  })
+  fromURL('./lga.txt', false, 'name')
 }
 
 
