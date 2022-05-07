@@ -247,8 +247,13 @@ function isGeom(target: any) {
 const geoJsonTypes = 'Features,FeatureCollections,Point,LineString,Polygon,MultiPoint,MultiLineString,MultiPolygon,GeometryCollection'.split(',')
 
 function isGeoJSON(target: any) {
-    if (typeof target === 'string') target = JSON.parse(target)
-    return target && target.type && geoJsonTypes.includes(target.type)
+    let geoJSON = null
+    if (typeof target === 'string') {
+        try {
+            geoJSON = JSON.parse(target)
+        } catch (e) { }
+    }
+    return geoJSON && geoJSON.type && geoJsonTypes.includes(geoJSON.type)
 }
 
 const geomUtil = {
