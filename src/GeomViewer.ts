@@ -543,7 +543,7 @@ class GeomViewer {
             }
         } else {
             const geom = toGeom(geomSrc)
-            if (geom.error() == '') toAdd.push(new Feature(geom))
+            if (geom.isValid()) toAdd.push(new Feature(geom))
         }
         const features = toAdd.map(feature => {
             if (projectToWebMercator) feature = feature.toWebmercator()
