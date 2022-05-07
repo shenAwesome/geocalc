@@ -174,6 +174,11 @@ class SvgStyle {
     get html() {
         return `x-id="${this.id}" fill="${this.fill}" stroke="${this.stroke}" stroke-width="${this.strokeWidth}"`
     }
+
+    setPrimaryColor(color: string, feature: Feature) {
+        const colorKey = feature.geometry.type().includes('String') ? 'stroke' : 'fill'
+        this[colorKey] = color
+    }
 }
 
 const styles = {
@@ -263,7 +268,15 @@ const svgOptions = {
     height: 300,
     zoomTo: 'All' as 'All' | 'First' | 'Last' | Extent,
     zoomRatio: 1.2,
-    styler: null as unknown as Styler
+    styler: DefaultStyler as Styler
+}
+
+function DefaultStyler(style: SvgStyle, properties: { [key: string]: any }, feature: Feature) {
+    const color = feature.attr("color"),
+        label = feature.attr("label")
+    if (color) style.setPrimaryColor(color, feature)
+    style.id = feature.id
+    style.label = label
 }
 
 function getTypeOrder(geom: Geom) {
@@ -273,6 +286,8 @@ function getTypeOrder(geom: Geom) {
     if (geom.type().includes('Polygon')) order = 1
     return order
 }
+
+
 
 /**
  * convert geometry(s) to SVG
@@ -320,6 +335,8 @@ function toSVG(geoms: Geom[] | Feature[], option?: Partial<typeof svgOptions>) {
             return typeSort + sort
         })
     }
+
+    const labels = []
     const svgParts = toDraw.map((feature, i) => {
         const geom = feature.geometry
         const target = transform(geom, p => {
@@ -331,8 +348,7 @@ function toSVG(geoms: Geom[] | Feature[], option?: Partial<typeof svgOptions>) {
         const className = geom.type() + ' ' + feature.id,
             json = JSON.parse(target.toJSON()) as GeoJSON,
             style = styles.getStyle(geom)
-        const colorKey = geom.type().includes('String') ? 'stroke' : 'fill'
-        style[colorKey] = rainbow(geoms.length, i)
+        style.setPrimaryColor(rainbow(geoms.length, i), feature)
         style.id = feature.id
         style.className = className
         style.label = ''
@@ -344,14 +360,15 @@ function toSVG(geoms: Geom[] | Feature[], option?: Partial<typeof svgOptions>) {
             const { centre } = Extent.getExtent(target)
             const labelSVG = ` <text x="${centre.x}" y="${centre.y}" 
                 class="${style.className}" dominant-baseline="middle" text-anchor="middle"
+                style="text-shadow: 1px 1px 1px white, -1px -1px 1px white, 1px -1px 1px white, -1px 1px 1px white;"
                 x-id='${style.id}'>${style.label}</text>`
-            shape += labelSVG
+            labels.push(labelSVG)
         }
         return shape
     }).join('\n')
 
     const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg')
-    svg.innerHTML = svgParts
+    svg.innerHTML = svgParts + labels.join('\n')
     svg.style.width = opt.width + 'px'
     svg.style.height = opt.height + 'px'
     svg.classList.add('GeomSVG')
@@ -449,6 +466,13 @@ class Extent {
     }
 }
 
+interface FeatureOption {
+    id: string
+    label: string
+    color: string
+    projectToWebMercator: boolean
+}
+
 class Feature {
 
     static fromJSON(json: GeoFeature | Geometry, name = '') {
@@ -500,6 +524,16 @@ class Feature {
     set id(val: string) {
         this.properties['id'] = val
     }
+
+    set(options: Partial<FeatureOption>) {
+        Object.assign(this.properties, options)
+    }
+
+    attr(key: string) {
+        let val = this.properties[key]
+        if (val == null) val = ''
+        return val + ''
+    }
 }
 
 interface GeoGeometry {
@@ -508,7 +542,7 @@ interface GeoGeometry {
 }
 
 //type geomSource = string | GeoFeature | GeoGeometry | number[] | number[][] | Feature | Geom
-type geomSource = string | GeoJSON | Geom | number[] | number[][]
+type geomSource = string | GeoJSON | Geom | number[] | number[][] | Feature
 
 class GeomViewer {
     private element = document.createElement('div')
@@ -520,18 +554,22 @@ class GeomViewer {
         this.element.style.display = 'inline-block'
         if (container) container.appendChild(this.element)
         if (options) this.option = { ...this.option, ...options }
-        this.render()
+
         this.render = debounce(this.render)
         this.add = this.add.bind(this)
         this.get = this.get.bind(this)
         this.last = this.last.bind(this)
         this.fromURL = this.fromURL.bind(this)
         this.fromEsri = this.fromEsri.bind(this)
+
+        this.render()
     }
 
-    public add(geomSrc: geomSource, id?: string, projectToWebMercator = false) {
+    public add(geomSrc: geomSource, opiton?: Partial<FeatureOption>) {
         const toAdd = [] as Feature[]
-        if (geomUtil.isGeom(geomSrc)) {
+        if (geomSrc instanceof Feature) {
+            toAdd.push(geomSrc)
+        } else if (geomUtil.isGeom(geomSrc)) {
             toAdd.push(new Feature(geomSrc as Geom))
         } else if (geomUtil.isGeoJSON(geomSrc)) {
             if (isStr(geomSrc)) geomSrc = JSON.parse(geomSrc as string)
@@ -546,13 +584,12 @@ class GeomViewer {
             if (geom.isValid()) toAdd.push(new Feature(geom))
         }
         const features = toAdd.map(feature => {
-            if (projectToWebMercator) feature = feature.toWebmercator()
-            if (id) feature.id = id
+            if (opiton && opiton.projectToWebMercator) feature = feature.toWebmercator()
+            feature.set(opiton)
             return feature
         })
         features.forEach(f => this.addFeature(f))
-        console.log(this.features)
-        return features[0]?.geometry
+        return features
     }
 
     public addFeature(feature: Feature) {

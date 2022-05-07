@@ -10,10 +10,10 @@ app.innerHTML = `
 `
 
 {
-  const { add, get } = new GeomViewer(app)
-  add([30.0, 10.0], 'point1')
-  add(get('point1').buffer(100))
-  const simplified = get('point1').buffer(100).simplify(10)
+  const { add } = new GeomViewer(app)
+  const [point] = add([30.0, 10.0])
+  const [buffer] = add(point.geometry.buffer(100))
+  const simplified = point.geometry.buffer(100).simplify(10)
   add(simplified)
 }
 
@@ -30,8 +30,8 @@ app.innerHTML = `
   const circle2 = circle1.offset(150, 0)
   const circle3 = circle1.intersection(circle2)
   const circle4 = circle1.union(circle2)
-  add(circle1)
-  add(circle2)
+  add(circle1, { label: 'A' })
+  add(circle2, { label: 'B' })
   add(circle3)
   add(circle4.buffer(20))
 }
