@@ -244,7 +244,7 @@ function isGeom(target: any) {
     return target && target._class && target._class() == 'AsLab.Geom'
 }
 
-const geoJsonTypes = 'Features,FeatureCollections,Point,LineString,Polygon,MultiPoint,MultiLineString,MultiPolygon,GeometryCollection'.split(',')
+const geoJsonTypes = 'Feature,FeatureCollections,Point,LineString,Polygon,MultiPoint,MultiLineString,MultiPolygon,GeometryCollection'.split(',')
 
 function isGeoJSON(target: any) {
     let geoJSON = null
