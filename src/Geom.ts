@@ -9,6 +9,11 @@ interface BufferOptions {
 
 interface Geom {
 
+    /** AsLab.Geom */
+    _class(): string
+
+    error(): string
+
     /**
      * Computes the buffer of a geometry for a given distance. 
      * Options:
@@ -235,5 +240,20 @@ function makePolygon(lines: Geom[], mitreLimit = 2) {
     return GeomCls.makePolygon(lines, mitreLimit) as Geom
 }
 
-export { toGeom, makePolygon }
+function isGeom(target: any) {
+    return target && target._class && target._class() == 'AsLab.Geom'
+}
+
+const geoJsonTypes = 'Features,FeatureCollections,Point,LineString,Polygon,MultiPoint,MultiLineString,MultiPolygon,GeometryCollection'.split(',')
+
+function isGeoJSON(target: any) {
+    if (typeof target === 'string') target = JSON.parse(target)
+    return target && target.type && geoJsonTypes.includes(target.type)
+}
+
+const geomUtil = {
+    makePolygon, isGeom, toGeom, isGeoJSON
+}
+
+export { toGeom, makePolygon, geomUtil }
 export type { BufferOptions, Geom }

@@ -1,10 +1,10 @@
-import { Geom, toGeom } from "./Geom"
+import { Geom, geomUtil, toGeom } from "./Geom"
 import { arcgisToGeoJSON, geojsonToArcGIS } from '../lib/geoJsonUtil'
 
 import {
     Feature as GeoFeature,
-    FeatureCollection,
-    GeoJsonObject, Geometry, GeometryCollection, LineString,
+    FeatureCollection, GeoJSON,
+    Geometry, GeometryCollection, LineString,
     MultiLineString, MultiPoint, MultiPolygon, Point, Polygon, Position
 } from "geojson"
 
@@ -14,6 +14,10 @@ function debounce(func: Function, timeout = 1) {
         clearTimeout(timer)
         timer = setTimeout(() => { func.apply(this, args) }, timeout)
     }
+}
+
+function isStr(test: any) {
+    return typeof test === 'string'
 }
 
 const Conv = ({
@@ -108,7 +112,7 @@ function rainbow(numOfSteps: number, step: number) {
  * @param geoJson 
  * @returns 
  */
-function getCoordinates(geoJson: GeoJsonObject) {
+function getCoordinates(geoJson: GeoJSON) {
     const coords = [] as Position[]
     if (geoJson.type == 'Point') {
         coords.push((geoJson as Point).coordinates)
@@ -145,7 +149,7 @@ function getCoordinates(geoJson: GeoJsonObject) {
  * @returns 
  */
 function transform(geom: Geom, transformer: (p: Position) => Position) {
-    const geoJSON = JSON.parse(geom.toJSON()) as GeoJsonObject
+    const geoJSON = JSON.parse(geom.toJSON()) as GeoJSON
     getCoordinates(geoJSON).forEach(p => {
         const newPosition = transformer(p)
         for (let i = 0; i < newPosition.length; i++) {
@@ -197,7 +201,7 @@ function removeDuplicate(position: Position[]) {
 }
 
 
-function jsonToSVGStr(json: GeoJsonObject, pointRadius: number) {
+function jsonToSVGStr(json: GeoJSON, pointRadius: number) {
     const { type } = json
     let svg = ""
     if (type == 'Point') {
@@ -295,9 +299,12 @@ function toSVG(geoms: Geom[] | Feature[], option?: Partial<typeof svgOptions>) {
     const inRange = (num: number, min: number, max: number) => {
         return num > min && num < max
     }
-    const isLatLon = inRange(extent.width, 0, 200) && inRange(extent.height, 0, 200)
-    const minSize = isLatLon ? 0.0001 : 10
-    const width = Math.max(minSize, extent.width),
+
+    const degreeLike = (x: number, y: number) => Math.abs(x) < 180 && Math.abs(y) < 90
+    const isDegree = degreeLike(extent.minX, extent.minY) && degreeLike(extent.maxX, extent.maxY)
+
+    const minSize = isDegree ? 0.0001 : 10,
+        width = Math.max(minSize, extent.width),
         height = Math.max(minSize, extent.height),
         { centre } = extent
     const ratio = Math.max(width / opt.width, height / opt.height) * opt.zoomRatio,
@@ -306,8 +313,7 @@ function toSVG(geoms: Geom[] | Feature[], option?: Partial<typeof svgOptions>) {
     let toDraw = features
     if (opt.autoSort) {
         toDraw = [...toDraw].sort((a, b) => {
-            const geomA = a.geometry,
-                geomB = b.geometry
+            const geomA = a.geometry, geomB = b.geometry
             const typeSort = (getTypeOrder(geomA) - getTypeOrder(geomB)) * 10,
                 diff = geomB.area() - geomA.area(),
                 sort = diff == 0 ? 0 : diff / Math.abs(diff)
@@ -323,7 +329,7 @@ function toSVG(geoms: Geom[] | Feature[], option?: Partial<typeof svgOptions>) {
             return [Math.round(x), opt.height - Math.round(y)]
         })
         const className = geom.type() + ' ' + feature.id,
-            json = JSON.parse(target.toJSON()) as GeoJsonObject,
+            json = JSON.parse(target.toJSON()) as GeoJSON,
             style = styles.getStyle(geom)
         const colorKey = geom.type().includes('String') ? 'stroke' : 'fill'
         style[colorKey] = rainbow(geoms.length, i)
@@ -444,6 +450,7 @@ class Extent {
 }
 
 class Feature {
+
     static fromJSON(json: GeoFeature | Geometry, name = '') {
         let target = json as GeoFeature
         if (!json.type.includes('Feature')) {
@@ -500,7 +507,8 @@ interface GeoGeometry {
     coordinates: number[] | number[][] | number[][][] | number[][][][]
 }
 
-type geomSource = string | GeoFeature | GeoGeometry | number[] | number[][] | Feature | Geom
+//type geomSource = string | GeoFeature | GeoGeometry | number[] | number[][] | Feature | Geom
+type geomSource = string | GeoJSON | Geom | number[] | number[][]
 
 class GeomViewer {
     private element = document.createElement('div')
@@ -522,18 +530,29 @@ class GeomViewer {
     }
 
     public add(geomSrc: geomSource, id?: string, projectToWebMercator = false) {
-        let feature = null as unknown as Feature
-        if (geomSrc instanceof Feature) {
-            feature = geomSrc
-        } else if ((geomSrc as any)['toJSON']) {
-            feature = new Feature(geomSrc as Geom)
+        const toAdd = [] as Feature[]
+        if (geomUtil.isGeom(geomSrc)) {
+            toAdd.push(new Feature(geomSrc as Geom))
+        } else if (geomUtil.isGeoJSON(geomSrc)) {
+            if (isStr(geomSrc)) geomSrc = JSON.parse(geomSrc as string)
+            const geoJSON = geomSrc as GeoJSON
+            if (geoJSON.type == 'FeatureCollection') {
+                toAdd.push(...geoJSON.features.map(f => Feature.fromJSON(f)))
+            } else {
+                toAdd.push(Feature.fromJSON(geoJSON))
+            }
         } else {
-            feature = new Feature(toGeom(geomSrc))
+            const geom = toGeom(geomSrc)
+            if (geom.error() == '') toAdd.push(new Feature(geom))
         }
-        if (id) feature.id = id
-        if (projectToWebMercator) feature = feature.toWebmercator()
-        this.addFeature(feature)
-        return feature.geometry
+        const features = toAdd.map(feature => {
+            if (projectToWebMercator) feature = feature.toWebmercator()
+            if (id) feature.id = id
+            return feature
+        })
+        features.forEach(f => this.addFeature(f))
+        console.log(this.features)
+        return features[0]?.geometry
     }
 
     public addFeature(feature: Feature) {
@@ -583,7 +602,7 @@ class GeomViewer {
         const geoJSON = arcgisToGeoJSON(esriJSON) as FeatureCollection
         const features = geoJSON.features.map(f => Feature.fromJSON(f))
         features.forEach(f => f.id = f.properties[keyField])
-        features.forEach(f => this.add(f))
+        features.forEach(f => this.addFeature(f))
         return features
     }
 
@@ -598,7 +617,7 @@ class GeomViewer {
         if (idGenerator) features.forEach(f => {
             f.id = (typeof idGenerator === 'string') ? f.properties[idGenerator] : idGenerator(f)
         })
-        features.forEach(f => this.add(f))
+        features.forEach(f => this.addFeature(f))
         return features
     }
 }

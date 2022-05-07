@@ -130,6 +130,10 @@ public class Geom implements Exportable {
         return error;
     }
 
+    public String _class(){
+        return "AsLab.Geom";
+    }
+
     public Geom(String jsonOrWKT) {
         try {
             jsonOrWKT = jsonOrWKT.trim();
