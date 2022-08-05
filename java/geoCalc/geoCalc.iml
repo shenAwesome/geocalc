@@ -16,7 +16,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/com/aslab/geocalc/super" isTestSource="false" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="com.gwtplugins.gwt.eclipse.core.GWT_CONTAINER" level="application" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="module-library">
       <library name="gwtexporter-2.5.0-SNAPSHOT.jar">
