@@ -1,5 +1,5 @@
 import { LineString } from "geojson"
-import { GeomViewer } from "./../../src/GeomViewer"
+import { GeomViewer } from "../../core/src/GeomViewer"
 //import { GeomViewer } from "@aslab/geocalc"
 import './style.css'
 
