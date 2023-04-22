@@ -19,6 +19,7 @@ import org.locationtech.jts.operation.buffer.BufferParameters;
 import org.locationtech.jts.operation.distance.DistanceOp;
 import org.locationtech.jts.operation.polygonize.Polygonizer;
 import org.locationtech.jts.simplify.DouglasPeuckerSimplifier;
+import org.locationtech.jts.simplify.TopologyPreservingSimplifier;
 import org.timepedia.exporter.client.Export;
 import org.timepedia.exporter.client.ExportPackage;
 import org.timepedia.exporter.client.Exportable;
@@ -244,7 +245,8 @@ public class Geom implements Exportable {
     }
 
     public Geom simplify(double tolerance) {
-        Geometry simplified = DouglasPeuckerSimplifier.simplify(geom, tolerance);
+        //Geometry simplified = DouglasPeuckerSimplifier.simplify(geom, tolerance);
+        Geometry simplified = TopologyPreservingSimplifier.simplify(geom, tolerance);
         return create(simplified);
     }
 

@@ -98,7 +98,7 @@ function main() {
     })
     addGeom(poly2)
 
-    addGeom(poly2.simplify(50), 'red')
+    addGeom(poly2.simplify(25), 'red')
     addGeom(poly1.intersection(poly2), '#ff7800')
 
   }
@@ -133,7 +133,7 @@ function main() {
   }
 
   {
-    const line = toGeom(GeoJSON2.features[3].geometry)
+    const line = toGeom(GeoJSON2.features[3].geometry) 
     addGeom(line, '#ff7800')
 
     const point1 = toGeom(GeoJSON2.features[4].geometry)
